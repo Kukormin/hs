@@ -1,0 +1,17 @@
+*.tar
+*.tar.gz
+*.log
+*.tmp
+*.xml
+*.csv
+
+/bitrix/
+/upload/
+yandex_*.txt
+google*.html
+/_dev/
+/_log/
+/_tmp/
+
+.idea
+.DS_Store
