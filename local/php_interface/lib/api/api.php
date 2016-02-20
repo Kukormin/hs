@@ -2,6 +2,8 @@
 
 namespace Local\Api;
 
+use Local\Common\Utils;
+
 abstract class Api
 {
 	/**
@@ -27,6 +29,12 @@ abstract class Api
 	 * Содержит входные данные PUT запроса
 	 */
 	protected $file = Null;
+
+	/**
+	 * Property: file
+	 * Содержит входные данные POST запроса
+	 */
+	protected $post = Null;
 
 	/**
 	 * Constructor: __construct
@@ -55,15 +63,18 @@ abstract class Api
 			}
 			else
 			{
-				$this->_throwException('Нераспознанный заголовок', 500, 1);
+				throw new ApiException(['wrong_http_method'], 405);
 			}
 		}
 
 		switch ($this->method)
 		{
 			case 'DELETE':
+				$this->request = $this->_cleanInputs($_POST);
+				break;
 			case 'POST':
 				$this->request = $this->_cleanInputs($_POST);
+				$this->post = json_decode(file_get_contents("php://input"), true);
 				break;
 			case 'GET':
 				$this->request = $this->_cleanInputs($_GET);
@@ -73,7 +84,7 @@ abstract class Api
 				$this->file = file_get_contents("php://input");
 				break;
 			default:
-				$this->_throwException('Метод не поддерживается', 405, 2);
+				throw new ApiException(['method_not_allowed'], 405);
 				break;
 		}
 	}
@@ -88,7 +99,7 @@ abstract class Api
 		if (method_exists($this, $this->endpoint))
 			return $this->_response($this->{$this->endpoint}($this->args));
 		else
-			$this->_throwException('Метод не найден', 404, 3);
+			throw new ApiException(['wrong_endpoint'], 404);
 	}
 
 	/**
@@ -99,7 +110,7 @@ abstract class Api
 	 */
 	private function _response($data, $status = 200)
 	{
-		header('HTTP/1.1 ' . $this->_httpStatus($status));
+		header('HTTP/1.1 ' . Utils::getHttpStatusByCode($status));
 		return json_encode($data, JSON_UNESCAPED_UNICODE);
 	}
 
@@ -122,41 +133,4 @@ abstract class Api
 		return $clean_input;
 	}
 
-	/**
-	 * Возвращает строку для заданного статуса
-	 * @param $code
-	 * @return mixed
-	 */
-	private function _requestStatus($code)
-	{
-		$status = array(
-			200 => 'OK',
-			404 => 'Not Found',
-			405 => 'Method Not Allowed',
-			500 => 'Internal Server Error',
-		);
-		return $status[$code] ? $status[$code] : $status[500];
-	}
-
-	/**
-	 * Возвращает HTTP статус по коду
-	 * @param $code
-	 * @return string
-	 */
-	private function _httpStatus($code)
-	{
-		return $code . ' ' . $this->_requestStatus($code);
-	}
-
-	/**
-	 * Исключение, включающее HTTP статус
-	 * @param string $message
-	 * @param int $status
-	 * @param int $code
-	 * @throws ApiException
-	 */
-	private function _throwException($message = '', $status = 500, $code = 0)
-	{
-		throw new ApiException($message, $this->_httpStatus($status), $code);
-	}
 }

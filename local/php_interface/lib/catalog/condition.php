@@ -1,19 +1,19 @@
 <?
 
-namespace Local\Data;
+namespace Local\Catalog;
 
 use Local\Common\ExtCache;
 use Local\Common\Utils;
 
-class Faq
+class Condition
 {
 	/**
 	 * Путь для кеширования
 	 */
-	const CACHE_PATH = 'Local/Data/Faq/';
+	const CACHE_PATH = 'Local/Catalog/Condition';
 
 	/**
-	 * Возвращает все разделы и элементы
+	 * Возвращает все состояния товара
 	 * (учитывает теговый кеш)
 	 * @param bool $refreshCache для принудительного сброса кеша
 	 * @return array|mixed
@@ -33,44 +33,44 @@ class Faq
 		} else {
 			$extCache->startDataCache();
 
-			$iblockId = Utils::getIBlockIdByCode('faq');
-
-			$iblockSection = new \CIBlockSection();
-			$rsSections = $iblockSection->GetList(array('SORT' => 'ASC'), array(
-				'IBLOCK_ID' => $iblockId,
-			), false, false);
-			while ($section = $rsSections->Fetch())
-			{
-				$id = intval($section['ID']);
-				$parent = intval($section['IBLOCK_SECTION_ID']);
-				$return['SECTIONS'][] = array(
-					'ID' => $id,
-					'NAME' => $section['NAME'],
-					'PARENT' => $parent,
-				);
-			}
+			$iblockId = Utils::getIBlockIdByCode('condition');
 
 			$iblockElement = new \CIBlockElement();
 			$rsItems = $iblockElement->GetList(array('SORT' => 'ASC'), array(
 				'IBLOCK_ID' => $iblockId,
-				'ACTIVE' => 'Y',
 			), false, false, array(
-				'ID', 'NAME', 'PREVIEW_TEXT', 'IBLOCK_SECTION_ID',
+				'ID', 'NAME', 'ACTIVE',
 			));
 			while ($item = $rsItems->Fetch())
 			{
 				$id = intval($item['ID']);
-				$parent = intval($item['IBLOCK_SECTION_ID']);
-				$return['ITEMS'][] = array(
+				$return[$id] = array(
 					'ID' => $id,
-					'Q' => $item['NAME'],
-					'A' => $item['PREVIEW_TEXT'],
-				    'PARENT' => $parent,
+				    'NAME' => $item['NAME'],
+				    'ACTIVE' => $item['ACTIVE'],
 				);
 			}
 
 			$extCache->endDataCache($return);
 		}
+
+		return $return;
+	}
+
+	/**
+	 * Возвращает активные состояния товара
+	 * @return array
+	 */
+	public static function getAppData() {
+		$conditions = self::getAll();
+
+		$return = array();
+		foreach ($conditions as $item)
+			if ($item['ACTIVE'] == 'Y')
+				$return[] = array(
+					'ID' => $item['ID'],
+					'NAME' => $item['NAME'],
+				);
 
 		return $return;
 	}

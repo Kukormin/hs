@@ -1,9 +1,10 @@
 <?
+include 'debug.php';
 
-\Bitrix\Main\Loader::includeModule('iblock');
+//error_reporting(E_ERROR | E_WARNING | E_PARSE);
 
 $lib = '/local/php_interface/lib/';
-CModule::AddAutoloadClasses(
+\CModule::AddAutoloadClasses(
 	'',
 	array(
 		'Local\\Common\\StaticCache' => $lib . 'common/StaticCache.php',
@@ -13,21 +14,14 @@ CModule::AddAutoloadClasses(
 		'Local\\Api\\v1' => $lib . 'api/v1.php',
 		'Local\\Api\\ApiException' => $lib . 'api/ApiException.php',
 		'Local\\Data\\Faq' => $lib . 'data/faq.php',
+		'Local\\Data\\User' => $lib . 'data/user.php',
+		'Local\\Data\\Ad' => $lib . 'data/ad.php',
+		'Local\\Catalog\\Condition' => $lib . 'catalog/condition.php',
+		'Local\\Catalog\\Color' => $lib . 'catalog/color.php',
 	)
 );
 
-if(!function_exists('DebugMessage')) {
-	function DebugMessage($message, $title = false, $color = '#008B8B') {
-		?><table border="0" cellpadding="5" cellspacing="0" style="border:1px solid <?=$color?>;margin:2px;"><tr><td style="color:<?=$color?>;font-size:11px;font-family:Verdana;"><?
-			if(strlen($title)) {
-				?><p>[<?=$title?>]</p><?
-			}
-			if (is_array($message) || is_object($message)) {
-				echo '<pre>'; print_r($message); echo '</pre>';
-			}
-			else {
-				var_dump($message);
-			}
-		?></td></tr></table><?
-	}
-}
+\Bitrix\Main\Loader::includeModule('iblock');
+
+Local\Common\Utils::addEventHandlers();
+Local\Data\User::addEventHandlers();

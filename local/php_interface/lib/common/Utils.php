@@ -11,6 +11,49 @@ class Utils
 	 */
 	const CACHE_PATH = 'Local/Common/Utils/';
 
+	private static $statusByCode = array(
+		200 => 'OK',
+		400 => 'Bad Request',
+		401 => 'Not Authorized',
+		403 => 'Forbidden',
+		404 => 'Not Found',
+		405 => 'Method Not Allowed',
+		500 => 'Internal Server Error',
+	);
+
+	/**
+	 * Обработчики событий
+	 */
+	public static function addEventHandlers() {
+		static $added = false;
+		if (!$added) {
+			$added = true;
+			AddEventHandler('iblock', 'OnAfterIBlockAdd',
+				array(__NAMESPACE__ . '\Utils', 'afterIBlockUpdate'));
+			AddEventHandler('iblock', 'OnAfterIBlockUpdate',
+				array(__NAMESPACE__ . '\Utils', 'afterIBlockUpdate'));
+			AddEventHandler('iblock', 'OnIBlockDelete',
+				array(__NAMESPACE__ . '\Utils', 'afterIBlockUpdate'));
+		}
+	}
+
+	/**
+	 * Возвращает HTTP статус по коду
+	 * @param $code
+	 * @return string
+	 */
+	public static function getHttpStatusByCode($code)
+	{
+		$s = self::$statusByCode[$code];
+		if ($s)
+			return $code . ' ' . $s;
+		else
+		{
+			$code = 500;
+			return $code . ' ' . self::$statusByCode[$code];
+		}
+	}
+
 	/**
 	 * Склонение числительных
 	 * @param $num
@@ -136,4 +179,12 @@ class Utils
 		$iblocks = self::getAllIBlocks();
 		return $iblocks['ITEMS'][$id];
 	}
+
+	/**
+	 * обработчик на редактирование ИБ для сброса кеша
+	 */
+	public static function afterIBlockUpdate() {
+		self::getAllIBlocks(true);
+	}
+
 }

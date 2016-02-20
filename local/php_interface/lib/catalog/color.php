@@ -1,19 +1,19 @@
 <?
 
-namespace Local\Data;
+namespace Local\Catalog;
 
 use Local\Common\ExtCache;
 use Local\Common\Utils;
 
-class Faq
+class Color
 {
 	/**
 	 * Путь для кеширования
 	 */
-	const CACHE_PATH = 'Local/Data/Faq/';
+	const CACHE_PATH = 'Local/Catalog/Color';
 
 	/**
-	 * Возвращает все разделы и элементы
+	 * Возвращает все цвета
 	 * (учитывает теговый кеш)
 	 * @param bool $refreshCache для принудительного сброса кеша
 	 * @return array|mixed
@@ -33,44 +33,48 @@ class Faq
 		} else {
 			$extCache->startDataCache();
 
-			$iblockId = Utils::getIBlockIdByCode('faq');
-
-			$iblockSection = new \CIBlockSection();
-			$rsSections = $iblockSection->GetList(array('SORT' => 'ASC'), array(
-				'IBLOCK_ID' => $iblockId,
-			), false, false);
-			while ($section = $rsSections->Fetch())
-			{
-				$id = intval($section['ID']);
-				$parent = intval($section['IBLOCK_SECTION_ID']);
-				$return['SECTIONS'][] = array(
-					'ID' => $id,
-					'NAME' => $section['NAME'],
-					'PARENT' => $parent,
-				);
-			}
+			$iblockId = Utils::getIBlockIdByCode('color');
 
 			$iblockElement = new \CIBlockElement();
 			$rsItems = $iblockElement->GetList(array('SORT' => 'ASC'), array(
 				'IBLOCK_ID' => $iblockId,
-				'ACTIVE' => 'Y',
 			), false, false, array(
-				'ID', 'NAME', 'PREVIEW_TEXT', 'IBLOCK_SECTION_ID',
+				'ID', 'NAME', 'ACTIVE', 'XML_ID', 'CODE',
 			));
 			while ($item = $rsItems->Fetch())
 			{
 				$id = intval($item['ID']);
-				$parent = intval($item['IBLOCK_SECTION_ID']);
-				$return['ITEMS'][] = array(
+				$return[$id] = array(
 					'ID' => $id,
-					'Q' => $item['NAME'],
-					'A' => $item['PREVIEW_TEXT'],
-				    'PARENT' => $parent,
+				    'NAME' => $item['NAME'],
+				    'ACTIVE' => $item['ACTIVE'],
+				    'XML_ID' => $item['XML_ID'],
+				    'CODE' => $item['CODE'],
 				);
 			}
 
 			$extCache->endDataCache($return);
 		}
+
+		return $return;
+	}
+
+	/**
+	 * Возвращает активные цвета
+	 * @return array
+	 */
+	public static function getAppData() {
+		$conditions = self::getAll();
+
+		$return = array();
+		foreach ($conditions as $item)
+			if ($item['ACTIVE'] == 'Y')
+				$return[] = array(
+					'ID' => $item['ID'],
+					'RU' => $item['NAME'],
+					'EN' => $item['CODE'],
+					'HEX' => $item['XML_ID'],
+				);
 
 		return $return;
 	}
