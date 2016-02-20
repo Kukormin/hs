@@ -1,24 +1,24 @@
 <?
 
-namespace Local\Data;
+namespace Local\Catalog;
 
 use Local\Common\ExtCache;
 use Local\Common\Utils;
 
-class Faq
+class Catalog
 {
 	/**
 	 * Путь для кеширования
 	 */
-	const CACHE_PATH = 'Local/Data/Faq/';
+	const CACHE_PATH = 'Local/Catalog/Catalog/';
 
 	/**
-	 * Возвращает все разделы и элементы
+	 * Возвращает все разделы каталога
 	 * (учитывает теговый кеш)
 	 * @param bool $refreshCache для принудительного сброса кеша
 	 * @return array|mixed
 	 */
-	public static function getAll($refreshCache = false) {
+	public static function getAllSections($refreshCache = false) {
 		$return = array();
 
 		$extCache = new ExtCache(
@@ -33,39 +33,24 @@ class Faq
 		} else {
 			$extCache->startDataCache();
 
-			$iblockId = Utils::getIBlockIdByCode('faq');
+			$iblockId = Utils::getIBlockIdByCode('catalog');
 
 			$iblockSection = new \CIBlockSection();
 			$rsSections = $iblockSection->GetList(array('LEFT_MARGIN' => 'ASC', 'SORT' => 'ASC'), array(
 				'IBLOCK_ID' => $iblockId,
-			), false, false);
+			), false, array(
+				'UF_SIZE'
+			));
 			while ($section = $rsSections->Fetch())
 			{
 				$id = intval($section['ID']);
 				$parent = intval($section['IBLOCK_SECTION_ID']);
-				$return['SECTIONS'][] = array(
+				$return[$id] = array(
 					'ID' => $id,
 					'NAME' => $section['NAME'],
+					'ACTIVE' => $section['ACTIVE'],
 					'PARENT' => $parent,
-				);
-			}
-
-			$iblockElement = new \CIBlockElement();
-			$rsItems = $iblockElement->GetList(array('SORT' => 'ASC'), array(
-				'IBLOCK_ID' => $iblockId,
-				'ACTIVE' => 'Y',
-			), false, false, array(
-				'ID', 'NAME', 'PREVIEW_TEXT', 'IBLOCK_SECTION_ID',
-			));
-			while ($item = $rsItems->Fetch())
-			{
-				$id = intval($item['ID']);
-				$parent = intval($item['IBLOCK_SECTION_ID']);
-				$return['ITEMS'][] = array(
-					'ID' => $id,
-					'Q' => $item['NAME'],
-					'A' => $item['PREVIEW_TEXT'],
-				    'PARENT' => $parent,
+				    'SIZE' => $section['UF_SIZE'],
 				);
 			}
 
@@ -74,4 +59,34 @@ class Faq
 
 		return $return;
 	}
+
+	/**
+	 * Возвращает активные разделы каталога
+	 * @return array
+	 */
+	public static function getAppData() {
+		$sections = self::getAllSections();
+
+		$return = array();
+		foreach ($sections as $item)
+			if ($item['ACTIVE'] == 'Y')
+				$return[] = array(
+					'ID' => $item['ID'],
+					'NAME' => $item['NAME'],
+					'PARENT' => $item['PARENT'],
+				);
+
+		return $return;
+	}
+
+	/**
+	 * Возвращает раздел по ID
+	 * @param $id
+	 * @return mixed
+	 */
+	public static function getSectionById($id) {
+		$sections = self::getAllSections();
+		return $sections[$id];
+	}
+
 }

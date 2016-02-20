@@ -1,19 +1,20 @@
 <?
 
-namespace Local\Data;
+namespace Local\Catalog;
 
 use Local\Common\ExtCache;
 use Local\Common\Utils;
+use Local\Api\ApiException;
 
-class Faq
+class Size
 {
 	/**
 	 * Путь для кеширования
 	 */
-	const CACHE_PATH = 'Local/Data/Faq/';
+	const CACHE_PATH = 'Local/Catalog/Size/';
 
 	/**
-	 * Возвращает все разделы и элементы
+	 * Возвращает все размеры
 	 * (учитывает теговый кеш)
 	 * @param bool $refreshCache для принудительного сброса кеша
 	 * @return array|mixed
@@ -33,7 +34,7 @@ class Faq
 		} else {
 			$extCache->startDataCache();
 
-			$iblockId = Utils::getIBlockIdByCode('faq');
+			$iblockId = Utils::getIBlockIdByCode('size');
 
 			$iblockSection = new \CIBlockSection();
 			$rsSections = $iblockSection->GetList(array('LEFT_MARGIN' => 'ASC', 'SORT' => 'ASC'), array(
@@ -42,35 +43,75 @@ class Faq
 			while ($section = $rsSections->Fetch())
 			{
 				$id = intval($section['ID']);
-				$parent = intval($section['IBLOCK_SECTION_ID']);
-				$return['SECTIONS'][] = array(
+				$return[$id] = array(
 					'ID' => $id,
 					'NAME' => $section['NAME'],
-					'PARENT' => $parent,
+					'TEXT' => $section['DESCRIPTION'],
+				    'ITEMS' => array(),
 				);
 			}
 
 			$iblockElement = new \CIBlockElement();
 			$rsItems = $iblockElement->GetList(array('SORT' => 'ASC'), array(
 				'IBLOCK_ID' => $iblockId,
-				'ACTIVE' => 'Y',
 			), false, false, array(
-				'ID', 'NAME', 'PREVIEW_TEXT', 'IBLOCK_SECTION_ID',
+				'ID', 'NAME', 'IBLOCK_SECTION_ID',
 			));
 			while ($item = $rsItems->Fetch())
 			{
 				$id = intval($item['ID']);
 				$parent = intval($item['IBLOCK_SECTION_ID']);
-				$return['ITEMS'][] = array(
+				$return[$parent]['ITEMS'][$id] = array(
 					'ID' => $id,
-					'Q' => $item['NAME'],
-					'A' => $item['PREVIEW_TEXT'],
-				    'PARENT' => $parent,
+					'NAME' => $item['NAME'],
+					'PARENT' => $parent,
 				);
 			}
 
 			$extCache->endDataCache($return);
 		}
+
+		return $return;
+	}
+
+	/**
+	 * Возвращает размеры по ID папки с размерами
+	 * @param $sizesId
+	 * @return mixed
+	 */
+	public static function getBySizesId($sizesId)
+	{
+		$sizes = self::getAll();
+		return $sizes[$sizesId];
+	}
+
+	/**
+	 * Возвращает размеры по ID раздела каталога
+	 * @param $sectionId
+	 * @return array|mixed
+	 * @throws ApiException
+	 */
+	public static function getBySectionId($sectionId) {
+		if (!$sectionId)
+			throw new ApiException(['wrong_section'], 404);
+
+		$sizesId = 0;
+		while ($sectionId)
+		{
+			$section = Catalog::getSectionById($sectionId);
+			if (!$section)
+				throw new ApiException(['wrong_section'], 404);
+
+			$sizesId = $section['SIZE'];
+			if ($sizesId)
+				break;
+
+			$sectionId = $section['PARENT'];
+		}
+
+		$return = array();
+		if ($sizesId)
+			$return = self::getBySizesId($sizesId);
 
 		return $return;
 	}

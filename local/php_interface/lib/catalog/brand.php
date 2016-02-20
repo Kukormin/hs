@@ -5,15 +5,15 @@ namespace Local\Catalog;
 use Local\Common\ExtCache;
 use Local\Common\Utils;
 
-class Color
+class Brand
 {
 	/**
 	 * Путь для кеширования
 	 */
-	const CACHE_PATH = 'Local/Catalog/Color/';
+	const CACHE_PATH = 'Local/Catalog/Brand/';
 
 	/**
-	 * Возвращает все цвета
+	 * Возвращает все бренды
 	 * (учитывает теговый кеш)
 	 * @param bool $refreshCache для принудительного сброса кеша
 	 * @return array|mixed
@@ -33,13 +33,13 @@ class Color
 		} else {
 			$extCache->startDataCache();
 
-			$iblockId = Utils::getIBlockIdByCode('color');
+			$iblockId = Utils::getIBlockIdByCode('brand');
 
 			$iblockElement = new \CIBlockElement();
-			$rsItems = $iblockElement->GetList(array('SORT' => 'ASC'), array(
+			$rsItems = $iblockElement->GetList(array('NAME' => 'ASC'), array(
 				'IBLOCK_ID' => $iblockId,
 			), false, false, array(
-				'ID', 'NAME', 'ACTIVE', 'XML_ID', 'CODE',
+				'ID', 'NAME', 'ACTIVE',
 			));
 			while ($item = $rsItems->Fetch())
 			{
@@ -48,8 +48,6 @@ class Color
 					'ID' => $id,
 				    'NAME' => $item['NAME'],
 				    'ACTIVE' => $item['ACTIVE'],
-				    'XML_ID' => $item['XML_ID'],
-				    'CODE' => $item['CODE'],
 				);
 			}
 
@@ -60,20 +58,18 @@ class Color
 	}
 
 	/**
-	 * Возвращает активные цвета
+	 * Возвращает активные бренды
 	 * @return array
 	 */
 	public static function getAppData() {
-		$conditions = self::getAll();
+		$brands = self::getAll();
 
 		$return = array();
-		foreach ($conditions as $item)
+		foreach ($brands as $item)
 			if ($item['ACTIVE'] == 'Y')
 				$return[] = array(
 					'ID' => $item['ID'],
-					'RU' => $item['NAME'],
-					'EN' => $item['CODE'],
-					'HEX' => $item['XML_ID'],
+					'NAME' => $item['NAME'],
 				);
 
 		return $return;

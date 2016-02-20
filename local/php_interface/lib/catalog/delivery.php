@@ -5,15 +5,15 @@ namespace Local\Catalog;
 use Local\Common\ExtCache;
 use Local\Common\Utils;
 
-class Color
+class Delivery
 {
 	/**
 	 * Путь для кеширования
 	 */
-	const CACHE_PATH = 'Local/Catalog/Color/';
+	const CACHE_PATH = 'Local/Catalog/Delivery/';
 
 	/**
-	 * Возвращает все цвета
+	 * Возвращает все способы отправки
 	 * (учитывает теговый кеш)
 	 * @param bool $refreshCache для принудительного сброса кеша
 	 * @return array|mixed
@@ -33,13 +33,13 @@ class Color
 		} else {
 			$extCache->startDataCache();
 
-			$iblockId = Utils::getIBlockIdByCode('color');
+			$iblockId = Utils::getIBlockIdByCode('delivery');
 
 			$iblockElement = new \CIBlockElement();
 			$rsItems = $iblockElement->GetList(array('SORT' => 'ASC'), array(
 				'IBLOCK_ID' => $iblockId,
 			), false, false, array(
-				'ID', 'NAME', 'ACTIVE', 'XML_ID', 'CODE',
+				'ID', 'NAME', 'ACTIVE', 'CODE', 'XML_ID',
 			));
 			while ($item = $rsItems->Fetch())
 			{
@@ -48,8 +48,8 @@ class Color
 					'ID' => $id,
 				    'NAME' => $item['NAME'],
 				    'ACTIVE' => $item['ACTIVE'],
-				    'XML_ID' => $item['XML_ID'],
 				    'CODE' => $item['CODE'],
+				    'PRICE' => $item['XML_ID'],
 				);
 			}
 
@@ -60,7 +60,7 @@ class Color
 	}
 
 	/**
-	 * Возвращает активные цвета
+	 * Возвращает активные состояния товара
 	 * @return array
 	 */
 	public static function getAppData() {
@@ -70,10 +70,9 @@ class Color
 		foreach ($conditions as $item)
 			if ($item['ACTIVE'] == 'Y')
 				$return[] = array(
-					'ID' => $item['ID'],
-					'RU' => $item['NAME'],
-					'EN' => $item['CODE'],
-					'HEX' => $item['XML_ID'],
+					'CODE' => $item['CODE'],
+					'NAME' => $item['NAME'],
+					'PRICE' => $item['PRICE'],
 				);
 
 		return $return;

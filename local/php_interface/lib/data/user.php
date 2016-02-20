@@ -77,7 +77,7 @@ class User
 	 * Второй шаг для авторизации пользователя
 
 	 */
-	public static function verify($phone, $smsKey, $userId, $deviceToken, $x, $y) {
+	public static function verify($phone, $smsKey, $userId, $device) {
 		$phone = trim($phone);
 		if (strlen($phone) == 0)
 			throw new ApiException(['empty_phone'], 400);
@@ -97,7 +97,7 @@ class User
 
 		// Сюда дошли, если всё ок
 		// Генерируем новую сессию
-		$authToken = self::createSession($userId, $deviceToken, $x, $y);
+		$authToken = self::createSession($userId, $device);
 
 		return array(
 			'token' => $authToken,
@@ -219,16 +219,16 @@ class User
 		));
 	}
 
-	private static function createSession($userId, $deviceToken, $x, $y) {
-		$deviceToken = trim($deviceToken);
+	private static function createSession($userId, $device) {
+		$deviceToken = trim($device['uuid']);
 		if (strlen($deviceToken) == 0)
-			throw new ApiException(['empty_device_token'], 400);
+			throw new ApiException(['empty_device_uuid'], 400);
 
 		$authToken = md5($userId . '|' . $deviceToken . '|' . static::SALT);
 		$session = self::getSession($authToken);
 		// Если не найден, то пробуем создать
 		if (!$session)
-			if (self::addSession($authToken, $userId, $deviceToken, $x, $y))
+			if (self::addSession($authToken, $userId, $device))
 				// Если пользователь создан, получаем все его поля, заодно обновляя кеш
 				$session = self::getSession($authToken, true);
 
@@ -280,15 +280,15 @@ class User
 		return $return;
 	}
 
-	private static function addSession($authToken, $userId, $deviceToken, $x, $y) {
+	private static function addSession($authToken, $userId, $device) {
 		$iblockElement = new \CIBlockElement();
 
 		$iblockId = Utils::getIBlockIdByCode('session');
 		$id = $iblockElement->Add(array(
 			'IBLOCK_ID' => $iblockId,
 			'NAME' => $authToken,
-			'CODE' => $deviceToken,
-		    'PREVIEW_TEXT' => $x . 'x' . $y,
+			'CODE' => $device['uuid'],
+		    'PREVIEW_TEXT' => $device['x'] . 'x' . $device['y'],
 		    'XML_ID' => $userId,
 		));
 		if (!$id)

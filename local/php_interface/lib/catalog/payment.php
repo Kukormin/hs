@@ -5,16 +5,15 @@ namespace Local\Catalog;
 use Local\Common\ExtCache;
 use Local\Common\Utils;
 
-class Condition
+class Payment
 {
 	/**
 	 * Путь для кеширования
 	 */
-	const CACHE_PATH = 'Local/Catalog/Condition/';
+	const CACHE_PATH = 'Local/Catalog/Payment/';
 
 	/**
-	 * Возвращает все состояния товара
-	 * (учитывает теговый кеш)
+	 * Возвращает все способы оплаты
 	 * @param bool $refreshCache для принудительного сброса кеша
 	 * @return array|mixed
 	 */
@@ -33,21 +32,18 @@ class Condition
 		} else {
 			$extCache->startDataCache();
 
-			$iblockId = Utils::getIBlockIdByCode('condition');
+			$iblockId = Utils::getIBlockIdByCode('ad');
 
-			$iblockElement = new \CIBlockElement();
-			$rsItems = $iblockElement->GetList(array('SORT' => 'ASC'), array(
+			$enum = new \CIBlockPropertyEnum();
+			$rsItems = $enum->GetList(array(), array(
 				'IBLOCK_ID' => $iblockId,
-			), false, false, array(
-				'ID', 'NAME', 'ACTIVE',
+				'CODE' => 'PAYMENT',
 			));
-			while ($item = $rsItems->Fetch())
-			{
-				$id = intval($item['ID']);
-				$return[$id] = array(
-					'ID' => $id,
-				    'NAME' => $item['NAME'],
-				    'ACTIVE' => $item['ACTIVE'],
+			while ($item = $rsItems->Fetch()) {
+				$return[$item['XML_ID']] = array(
+					'ID' => $item['ID'],
+					'XML_ID' => $item['XML_ID'],
+					'VALUE' => $item['VALUE'],
 				);
 			}
 
@@ -62,15 +58,14 @@ class Condition
 	 * @return array
 	 */
 	public static function getAppData() {
-		$conditions = self::getAll();
+		$payments = self::getAll();
 
 		$return = array();
-		foreach ($conditions as $item)
-			if ($item['ACTIVE'] == 'Y')
-				$return[] = array(
-					'ID' => $item['ID'],
-					'NAME' => $item['NAME'],
-				);
+		foreach ($payments as $item)
+			$return[] = array(
+				'CODE' => $item['XML_ID'],
+				'NAME' => $item['VALUE'],
+			);
 
 		return $return;
 	}

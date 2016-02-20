@@ -18,6 +18,11 @@ $lib = '/local/php_interface/lib/';
 		'Local\\Data\\Ad' => $lib . 'data/ad.php',
 		'Local\\Catalog\\Condition' => $lib . 'catalog/condition.php',
 		'Local\\Catalog\\Color' => $lib . 'catalog/color.php',
+		'Local\\Catalog\\Catalog' => $lib . 'catalog/catalog.php',
+		'Local\\Catalog\\Size' => $lib . 'catalog/size.php',
+		'Local\\Catalog\\Payment' => $lib . 'catalog/payment.php',
+		'Local\\Catalog\\Delivery' => $lib . 'catalog/delivery.php',
+		'Local\\Catalog\\Brand' => $lib . 'catalog/brand.php',
 	)
 );
 
