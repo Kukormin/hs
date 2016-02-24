@@ -74,4 +74,14 @@ class Condition
 
 		return $return;
 	}
+
+	/**
+	 * Возвращает состояние по ID
+	 * @param $id
+	 * @return mixed
+	 */
+	public static function getById($id) {
+		$conditions = self::getAll();
+		return $conditions[$id];
+	}
 }

@@ -34,6 +34,7 @@ class User
 
 	/**
 	 * Первый шаг для авторизации пользователя по телефону
+	 * Отправка sms на указанный номер
 	 * @param $phone
 	 * @return mixed
 	 * @throws ApiException
@@ -75,7 +76,13 @@ class User
 
 	/**
 	 * Второй шаг для авторизации пользователя
-
+	 * Проверка кода, отправленного на телефон по sms и создание сессии для заданного устройства
+	 * @param $phone
+	 * @param $smsKey
+	 * @param $userId
+	 * @param $device
+	 * @return array
+	 * @throws ApiException
 	 */
 	public static function verify($phone, $smsKey, $userId, $device) {
 		$phone = trim($phone);
@@ -104,6 +111,11 @@ class User
 		);
 	}
 
+	/**
+	 * Проверка авторизации
+	 * @return array|mixed
+	 * @throws ApiException
+	 */
 	public static function checkAuth()
 	{
 		$headers = getallheaders();
@@ -116,6 +128,26 @@ class User
 			throw new ApiException(['not_authorized'], 401);
 
 		return $session;
+	}
+
+	/**
+	 * Возвращает ID текущего пользователя (0 - если неавторизован)
+	 * @return int
+	 */
+	public static function getCurrentUserId()
+	{
+		$userId = 0;
+
+		$headers = getallheaders();
+		$authToken = $headers['x-auth'];
+		if ($authToken)
+		{
+			$session = self::getSession($authToken);
+			if ($session)
+				$userId = intval($session['USER_ID']);
+		}
+
+		return $userId;
 	}
 
 	/**

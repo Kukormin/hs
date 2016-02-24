@@ -43,13 +43,15 @@ class v1 extends Api
 		elseif ($method == 'section')
 			return Catalog::getAppData();
 		elseif ($method == 'size')
-			return Size::getBySectionId($args[1]);
+			return Size::getAppData($args[1]);
 		elseif ($method == 'payment')
 			return Payment::getAppData();
 		elseif ($method == 'delivery')
 			return Delivery::getAppData();
 		elseif ($method == 'brand')
 			return Brand::getAppData();
+		elseif ($method == 'addbrand')
+			return Brand::add($this->post['name']);
 		else
 			throw new ApiException(['wrong_endpoint'], 404);
 	}
@@ -57,7 +59,9 @@ class v1 extends Api
 	protected function ad($args) {
 		$method = $args[0];
 		if ($method == 'add')
-			return Ad::add();
+			return Ad::add($this->post['section'], $this->post['brand'], $this->post['condition'],
+				$this->post['color'], $this->post['size'], $this->post['material'], $this->post['features'],
+				$this->post['purchase'], $this->post['price'], $this->post['payment'], $this->post['delivery']);
 		else
 			throw new ApiException(['wrong_endpoint'], 404);
 	}

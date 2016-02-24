@@ -74,7 +74,10 @@ abstract class Api
 				break;
 			case 'POST':
 				$this->request = $this->_cleanInputs($_POST);
-				$this->post = json_decode(file_get_contents("php://input"), true);
+				if ($this->request['data'])
+					$this->post = json_decode($this->request['data'], true);
+				else
+					$this->post = json_decode(file_get_contents("php://input"), true);
 				break;
 			case 'GET':
 				$this->request = $this->_cleanInputs($_GET);

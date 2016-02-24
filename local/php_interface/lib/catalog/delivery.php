@@ -21,6 +21,8 @@ class Delivery
 	public static function getAll($refreshCache = false) {
 		$return = array();
 
+		$iblockId = Utils::getIBlockIdByCode('delivery');
+
 		$extCache = new ExtCache(
 			array(
 				__FUNCTION__,
@@ -33,8 +35,6 @@ class Delivery
 		} else {
 			$extCache->startDataCache();
 
-			$iblockId = Utils::getIBlockIdByCode('delivery');
-
 			$iblockElement = new \CIBlockElement();
 			$rsItems = $iblockElement->GetList(array('SORT' => 'ASC'), array(
 				'IBLOCK_ID' => $iblockId,
@@ -44,7 +44,7 @@ class Delivery
 			while ($item = $rsItems->Fetch())
 			{
 				$id = intval($item['ID']);
-				$return[$id] = array(
+				$return[$item['CODE']] = array(
 					'ID' => $id,
 				    'NAME' => $item['NAME'],
 				    'ACTIVE' => $item['ACTIVE'],
@@ -60,14 +60,14 @@ class Delivery
 	}
 
 	/**
-	 * Возвращает активные состояния товара
+	 * Возвращает активные способы отправки
 	 * @return array
 	 */
 	public static function getAppData() {
-		$conditions = self::getAll();
+		$items = self::getAll();
 
 		$return = array();
-		foreach ($conditions as $item)
+		foreach ($items as $item)
 			if ($item['ACTIVE'] == 'Y')
 				$return[] = array(
 					'CODE' => $item['CODE'],
@@ -76,5 +76,15 @@ class Delivery
 				);
 
 		return $return;
+	}
+
+	/**
+	 * Возвращает способ отправки по коду
+	 * @param $code
+	 * @return mixed
+	 */
+	public static function getByCode($code) {
+		$items = self::getAll();
+		return $items[$code];
 	}
 }

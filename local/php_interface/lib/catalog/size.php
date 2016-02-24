@@ -55,7 +55,7 @@ class Size
 			$rsItems = $iblockElement->GetList(array('SORT' => 'ASC'), array(
 				'IBLOCK_ID' => $iblockId,
 			), false, false, array(
-				'ID', 'NAME', 'IBLOCK_SECTION_ID',
+				'ID', 'NAME', 'ACTIVE', 'IBLOCK_SECTION_ID',
 			));
 			while ($item = $rsItems->Fetch())
 			{
@@ -64,7 +64,7 @@ class Size
 				$return[$parent]['ITEMS'][$id] = array(
 					'ID' => $id,
 					'NAME' => $item['NAME'],
-					'PARENT' => $parent,
+					'ACTIVE' => $item['ACTIVE'],
 				);
 			}
 
@@ -83,6 +83,31 @@ class Size
 	{
 		$sizes = self::getAll();
 		return $sizes[$sizesId];
+	}
+
+	/**
+	 * Возвращает папку с размерами и активные размеры по ID раздела
+	 * @param $sectionId
+	 * @return array
+	 * @throws ApiException
+	 */
+	public static function getAppData($sectionId)
+	{
+		$sizes = self::getBySectionId($sectionId);
+
+		$return = array(
+			'ID' => $sizes['ID'],
+			'NAME' => $sizes['NAME'],
+			'TEXT' => $sizes['TEXT'],
+		);
+		foreach ($sizes['ITEMS'] as $item)
+			if ($item['ACTIVE'] == 'Y')
+				$return['ITEMS'][] = array(
+					'ID' => $item['ID'],
+					'NAME' => $item['NAME'],
+				);
+
+		return $return;
 	}
 
 	/**
@@ -114,5 +139,17 @@ class Size
 			$return = self::getBySizesId($sizesId);
 
 		return $return;
+	}
+
+	/**
+	 * Возвращает размер по ID (для указанного раздела)
+	 * @param $sectionId
+	 * @param $id
+	 * @return mixed
+	 */
+	public static function getById($sectionId, $id)
+	{
+		$sizes = self::getBySectionId($sectionId);
+		return $sizes['ITEMS'][$id];
 	}
 }

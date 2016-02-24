@@ -64,10 +64,10 @@ class Color
 	 * @return array
 	 */
 	public static function getAppData() {
-		$conditions = self::getAll();
+		$colors = self::getAll();
 
 		$return = array();
-		foreach ($conditions as $item)
+		foreach ($colors as $item)
 			if ($item['ACTIVE'] == 'Y')
 				$return[] = array(
 					'ID' => $item['ID'],
@@ -77,5 +77,15 @@ class Color
 				);
 
 		return $return;
+	}
+
+	/**
+	 * Возвращает цвет по ID
+	 * @param $id
+	 * @return mixed
+	 */
+	public static function getById($id) {
+		$colors = self::getAll();
+		return $colors[$id];
 	}
 }

@@ -54,7 +54,7 @@ class Payment
 	}
 
 	/**
-	 * Возвращает активные состояния товара
+	 * Возвращает активные способы оплаты
 	 * @return array
 	 */
 	public static function getAppData() {
@@ -68,5 +68,15 @@ class Payment
 			);
 
 		return $return;
+	}
+
+	/**
+	 * Возвращает способ оплаты по коду
+	 * @param $code
+	 * @return mixed
+	 */
+	public static function getByCode($code) {
+		$payments = self::getAll();
+		return $payments[$code];
 	}
 }

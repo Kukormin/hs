@@ -251,15 +251,22 @@ class ExtCache
 			$phpCache = $this->getCacheObject();
 
 			// В режиме принудительного обновления кеша устанавливаем соотв. флаг
-			// (для сброса кеша пользователь должен иметь необходимые права)
+			$prev = '';
 			if ($this->forceUpdate && $this->startDataCacheBeforeInit)
+			{
 				Cache::setClearCache(true);
+				$prev = $_SESSION["SESS_CLEAR_CACHE"];
+				$_SESSION["SESS_CLEAR_CACHE"] = 'Y';
+			}
 
 			$return = $phpCache->StartDataCache();
 
 			// Вернем бывшее состояние
 			if ($this->forceUpdate && $this->startDataCacheBeforeInit)
+			{
 				Cache::setClearCache($_GET["clear_cache"] === 'Y');
+				$_SESSION["SESS_CLEAR_CACHE"] = $prev;
+			}
 
 			if ($return)
 			{
