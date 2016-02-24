@@ -1,0 +1,5 @@
+.results {width:100%; border-collapse:collapse; border-spacing:0;}
+.results td, .results th {border:1px solid #777; padding: 1px 4px;}
+.response.hidden {display:none;}
+.results tr.ok td {background:#bfb;}
+.results tr.error td {background:#fbb;}
