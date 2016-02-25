@@ -43,7 +43,7 @@ class Size
 			while ($section = $rsSections->Fetch())
 			{
 				$id = intval($section['ID']);
-				$return[$id] = array(
+				$return['SECTIONS'][$id] = array(
 					'ID' => $id,
 					'NAME' => $section['NAME'],
 					'TEXT' => $section['DESCRIPTION'],
@@ -61,7 +61,12 @@ class Size
 			{
 				$id = intval($item['ID']);
 				$parent = intval($item['IBLOCK_SECTION_ID']);
-				$return[$parent]['ITEMS'][$id] = array(
+				$return['SECTIONS'][$parent]['ITEMS'][$id] = array(
+					'ID' => $id,
+					'NAME' => $item['NAME'],
+					'ACTIVE' => $item['ACTIVE'],
+				);
+				$return['ITEMS'][$id] = array(
 					'ID' => $id,
 					'NAME' => $item['NAME'],
 					'ACTIVE' => $item['ACTIVE'],
@@ -82,7 +87,18 @@ class Size
 	public static function getBySizesId($sizesId)
 	{
 		$sizes = self::getAll();
-		return $sizes[$sizesId];
+		return $sizes['SECTIONS'][$sizesId];
+	}
+
+	/**
+	 * Возвращает размер по ID
+	 * @param $id
+	 * @return mixed
+	 */
+	public static function getById($id)
+	{
+		$sizes = self::getAll();
+		return $sizes['ITEMS'][$id];
 	}
 
 	/**
@@ -147,7 +163,7 @@ class Size
 	 * @param $id
 	 * @return mixed
 	 */
-	public static function getById($sectionId, $id)
+	public static function getBySectionAndId($sectionId, $id)
 	{
 		$sizes = self::getBySectionId($sectionId);
 		return $sizes['ITEMS'][$id];

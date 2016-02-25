@@ -58,7 +58,7 @@ class Ad
 		$sizeId = intval($sizeId);
 		if ($section && $sizeId)
 		{
-			$size = Size::getById($sectionId, $sizeId);
+			$size = Size::getBySectionAndId($sectionId, $sizeId);
 			if (!$size || $size['ACTIVE'] != 'Y')
 				$errors[] = 'wrong_size';
 		}
@@ -114,7 +114,8 @@ class Ad
 		$f = new \CFile();
 		foreach ($_FILES as $file)
 		{
-			$fileId = $f->SaveFile($file, "ad");
+			$file['MODULE_ID'] = '_ad';
+			$fileId = $f->SaveFile($file, 'ad');
 			if (!$fileId)
 				throw new ApiException(['photo_upload_error'], 500);
 			$fileIds[] = $fileId;

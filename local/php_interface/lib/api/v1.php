@@ -34,6 +34,16 @@ class v1 extends Api
 			throw new ApiException(['wrong_endpoint'], 404);
 	}
 
+	protected function user($args) {
+		$method = $args[0];
+		if ($method == 'profile')
+			return User::profile();
+		if ($method == 'update')
+			return User::update($this->post);
+		else
+			throw new ApiException(['wrong_endpoint'], 404);
+	}
+
 	protected function catalog($args) {
 		$method = $args[0];
 		if ($method == 'condition')

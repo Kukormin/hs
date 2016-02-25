@@ -2,6 +2,9 @@
 
 namespace Local\Data;
 
+use Local\Catalog\Brand;
+use Local\Catalog\Catalog;
+use Local\Catalog\Size;
 use Local\Common\ExtCache;
 use Local\Common\Utils;
 use Local\Api\ApiException;
@@ -200,6 +203,112 @@ class User
 	}
 
 	/**
+	 * Возвращает профиль текущего пользователя
+	 * @return mixed
+	 * @throws ApiException
+	 */
+	public static function profile()
+	{
+		// Проверяем авторизацию (выкинет исключение, если неавторизован)
+		$session = User::checkAuth();
+		$userId = $session['USER_ID'];
+
+		$profile = self::getById($userId);
+		return $profile;
+	}
+
+	/**
+	 * Возвращает пользователя по ID
+	 * @param $id
+	 * @param bool $refreshCache
+	 * @return mixed
+	 */
+	public static function getById($id, $refreshCache = false) {
+		$id = intval($id);
+
+		$return = array();
+		$extCache = new ExtCache(
+			array(
+				__FUNCTION__,
+				$id,
+			),
+			static::CACHE_PATH . __FUNCTION__ . '/',
+			86400 * 20,
+			false // не используем теговый кеш, чтоб не удалять кеш при измененях в пользователях
+		);
+		if(!$refreshCache && $extCache->initCache()) {
+			$return = $extCache->getVars();
+		} else {
+			$extCache->startDataCache();
+
+			$iblockId = Utils::getIBlockIdByCode('user');
+
+			$iblockElement = new \CIBlockElement();
+			$rsItems = $iblockElement->GetList(array(), array(
+			    'IBLOCK_ID' => $iblockId,
+			    'ID' => $id,
+			), false, false, array(
+				'ID', 'IBLOCK_ID', 'NAME', 'CODE',
+			    'PROPERTY_NAME',
+			    'PROPERTY_CITY',
+			    'PROPERTY_EMAIL',
+			    'PROPERTY_PHOTO',
+			    'PROPERTY_STREET',
+			    'PROPERTY_FLAT',
+			    'PROPERTY_INDEX',
+			    'PROPERTY_FIO',
+			    'PROPERTY_SIZE',
+			    'PROPERTY_BRAND',
+			    'PROPERTY_SECTION',
+			));
+			if ($item = $rsItems->Fetch())
+			{
+				$photo = array();
+				if ($item['PROPERTY_PHOTO_VALUE'])
+				{
+					$file = new \CFile();
+					$photo = array(
+						'id' => intval($item['PROPERTY_PHOTO_VALUE']),
+						'url' => $file->GetPath($item['PROPERTY_PHOTO_VALUE']),
+					);
+				}
+				$size = array();
+				foreach ($item['PROPERTY_SIZE_VALUE'] as $tmp)
+					$size[] = intval($tmp);
+				$brand = array();
+				foreach ($item['PROPERTY_BRAND_VALUE'] as $tmp)
+					$brand[] = intval($tmp);
+				$section = array();
+				foreach ($item['PROPERTY_SECTION_VALUE'] as $tmp)
+					$section[] = intval($tmp);
+				$return = array(
+					'id' => intval($item['ID']),
+					'phone' => $item['NAME'],
+					'active' => $item['ACTIVE'],
+					'name' => $item['PROPERTY_NAME_VALUE'],
+					'city' => $item['PROPERTY_CITY_VALUE'],
+					'nickname' => $item['CODE'],
+					'email' => $item['PROPERTY_EMAIL_VALUE'],
+					'photo' => $photo,
+					'address' => array(
+						'street' => $item['PROPERTY_STREET_VALUE'],
+						'flat' => $item['PROPERTY_FLAT_VALUE'],
+						'index' => $item['PROPERTY_INDEX_VALUE'],
+						'fio' => $item['PROPERTY_FIO_VALUE'],
+					),
+					'sizes' => $size,
+					'brands' => $brand,
+					'sections' => $section,
+				);
+			}
+
+			$extCache->endDataCache($return);
+		}
+
+		return $return;
+	}
+
+	/**
 	 * Добавляет пользователя с указанным номером телефона
 	 * @param $phone
 	 * @return bool
@@ -251,6 +360,97 @@ class User
 		));
 	}
 
+	public static function update($data)
+	{
+		// Проверяем авторизацию (выкинет исключение, если неавторизован)
+		$session = User::checkAuth();
+		$userId = $session['USER_ID'];
+
+		$iblockElement = new \CIBlockElement();
+		$iblockId = Utils::getIBlockIdByCode('user');
+
+		$fields = array();
+		if ($data['nickname'])
+		{
+			$nickname = htmlspecialchars(trim($data['nickname']));
+			$id = self::getIdByNickName($nickname);
+			if ($id == 0)
+				$fields['CODE'] = $nickname;
+			elseif ($id != $userId)
+				throw new ApiException(['nickname_already_exists'], 400);
+		}
+		if ($fields)
+			$iblockElement->Update($userId, $fields);
+
+		$properties = array();
+		if ($data['name'])
+			$properties['NAME'] = htmlspecialchars(trim($data['name']));
+		if ($data['city'])
+			$properties['CITY'] = htmlspecialchars(trim($data['city']));
+		if ($data['email'])
+			$properties['EMAIL'] = htmlspecialchars(trim($data['email']));
+		if ($data['address'])
+		{
+			$properties['STREET'] = htmlspecialchars(trim($data['address']['street']));
+			$properties['FLAT'] = htmlspecialchars(trim($data['address']['flat']));
+			$properties['INDEX'] = htmlspecialchars(trim($data['address']['index']));
+			$properties['FIO'] = htmlspecialchars(trim($data['address']['fio']));
+		}
+		if ($data['sizes'])
+		{
+			$sizeIds = array();
+			foreach($data['sizes'] as $id)
+			{
+				$size = Size::getById($id);
+				if ($size['ACTIVE'] == 'Y')
+					$sizeIds[] = $size['ID'];
+			}
+			if ($sizeIds)
+				$properties['SIZE'] = $sizeIds;
+		}
+		if ($data['brands'])
+		{
+			$brandIds = array();
+			foreach($data['brands'] as $id)
+			{
+				$brand = Brand::getById($id);
+				if ($brand['ACTIVE'] == 'Y')
+					if (!$brand['USER'] || $brand['USER'] == $userId)
+						$brandIds[] = $brand['ID'];
+			}
+			if ($brandIds)
+				$properties['BRAND'] = $brandIds;
+		}
+		if ($data['sections'])
+		{
+			$sectionIds = array();
+			foreach($data['sections'] as $id)
+			{
+				$section = Catalog::getSectionById($id);
+				if ($section['ACTIVE'] == 'Y')
+					$sectionIds[] = $section['ID'];
+			}
+			if ($sectionIds)
+				$properties['SECTION'] = $sectionIds;
+		}
+		foreach ($_FILES as $file)
+		{
+			$properties['PHOTO'] = $file;
+			break;
+		}
+		if ($properties)
+			$iblockElement->SetPropertyValuesEx($userId, $iblockId, $properties);
+
+		return self::getById($userId, true);
+	}
+
+	/**
+	 * Создает сессию для указанного пользователя
+	 * @param $userId
+	 * @param $device
+	 * @return string
+	 * @throws ApiException
+	 */
 	private static function createSession($userId, $device) {
 		$deviceToken = trim($device['uuid']);
 		if (strlen($deviceToken) == 0)
@@ -270,6 +470,12 @@ class User
 		return $authToken;
 	}
 
+	/**
+	 * Получает сессию по токену авторизации
+	 * @param $authToken
+	 * @param bool $refreshCache
+	 * @return array|mixed
+	 */
 	public static function getSession($authToken, $refreshCache = false) {
 		$return = array();
 		$extCache = new ExtCache(
@@ -312,6 +518,14 @@ class User
 		return $return;
 	}
 
+	/**
+	 * Добавляет элемент сессии
+	 * @param $authToken
+	 * @param $userId
+	 * @param $device
+	 * @return bool
+	 * @throws ApiException
+	 */
 	private static function addSession($authToken, $userId, $device) {
 		$iblockElement = new \CIBlockElement();
 
@@ -342,6 +556,7 @@ class User
 				$name = self::getNameById($arFields['ID']);
 			if ($name)
 				self::getByPhone($name, true);
+			self::getById($arFields['ID'], true);
 
 			// если пользователя деактивируют, то нужно удалить все его сессии
 			if ($arFields['ACTIVE'] == 'N')
@@ -364,6 +579,7 @@ class User
 				$name = self::getNameById($arFields['ID']);
 			if ($name)
 				self::getByPhone($name, true);
+			self::getById($arFields['ID'], true);
 
 			// если пользователя удаляют, то нужно удалить все его сессии
 			self::deleteSessionsByUserId($arFields['ID']);
@@ -410,5 +626,29 @@ class User
 
 		return $name;
 	}
+
+	/**
+	 * Находит ID пользователя по никнейму
+	 * @param $code
+	 * @return int
+	 */
+	private static function getIdByNickName($code)
+	{
+		$id = 0;
+		$iblockId = Utils::getIBlockIdByCode('user');
+		$iblockElement = new \CIBlockElement();
+		$rsItems = $iblockElement->GetList(array(), array(
+			'CODE' => $code,
+			'IBLOCK_ID' => $iblockId,
+		), false, false, array(
+			'ID',
+		));
+		if ($item = $rsItems->Fetch())
+			$id = $item['ID'];
+
+		return $id;
+	}
+
+	// TODO: проверка на возможность удаления пользователя
 
 }

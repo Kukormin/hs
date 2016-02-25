@@ -10,6 +10,7 @@ $lib = '/local/php_interface/lib/';
 		'Local\\Common\\StaticCache' => $lib . 'common/StaticCache.php',
 		'Local\\Common\\ExtCache' => $lib . 'common/ExtCache.php',
 		'Local\\Common\\Utils' => $lib . 'common/Utils.php',
+		'Local\\Common\\Agents' => $lib . 'common/Agents.php',
 		'Local\\Api\\Api' => $lib . 'api/api.php',
 		'Local\\Api\\v1' => $lib . 'api/v1.php',
 		'Local\\Api\\ApiException' => $lib . 'api/ApiException.php',
