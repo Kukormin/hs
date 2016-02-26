@@ -19,7 +19,7 @@
 		<th>Method</th>
 		<th>URI</th>
 		<th>Авт</th>
-		<th>POST параметры</th>
+		<th>GET или POST параметры</th>
 		<th colspan="2">Действия</th>
 		<th>Ответ</th>
 	</tr><?
@@ -45,19 +45,8 @@
 		<td><?= $arTest['VAR'] ?></td>
 		<td><?= $arTest['METHOD'] ?></td>
 		<td><?= $arTest['URI'] ?></td>
-		<td data-auth="<?= $arTest['AUTH'] ?>"<?= $needAuth ?>><?= $auth ?></td><?
-
-		if ($arTest['METHOD'] == 'POST')
-		{
-			?>
-			<td><input type="text" size="100" value="<?= htmlspecialchars($arTest['DATA']) ?>"</td><?
-		}
-		else
-		{
-			?>
-			<td></td><?
-		}
-		?>
+		<td data-auth="<?= $arTest['AUTH'] ?>"<?= $needAuth ?>><?= $auth ?></td>
+		<td><input name="t<?= $i ?>" type="text" size="100" value="<?= htmlspecialchars($arTest['DATA']) ?>" /></td>
 		<td><input type="button" value="Запустить"/></td>
 		<td></td>
 		<td data-need="<?= $arTest['NEED'] ?>"></td>

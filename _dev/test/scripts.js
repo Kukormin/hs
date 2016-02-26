@@ -14,9 +14,7 @@ $(document).ready(function() {
 			headers = {
 				'x-auth': sAuth
 			}
-		var sData = '';
-		if (sType == 'POST')
-			sData = jqRow.children('td:eq(5)').children('input').val();
+		var sData = jqRow.children('td:eq(5)').children('input').val();
 		jqRow.children('td:eq(7)').html('');
 		jqRow.children('td:eq(8)').text('...');
 		jqRow.removeClass('ok');

@@ -39,7 +39,10 @@ class Size
 			$iblockSection = new \CIBlockSection();
 			$rsSections = $iblockSection->GetList(array('LEFT_MARGIN' => 'ASC', 'SORT' => 'ASC'), array(
 				'IBLOCK_ID' => $iblockId,
-			), false, false);
+			), false, array(
+				'UF_FOR_M',
+				'UF_FOR_W',
+			));
 			while ($section = $rsSections->Fetch())
 			{
 				$id = intval($section['ID']);
@@ -47,6 +50,8 @@ class Size
 					'ID' => $id,
 					'NAME' => $section['NAME'],
 					'TEXT' => $section['DESCRIPTION'],
+					'FOR_M' => intval($section['UF_FOR_M']),
+					'FOR_W' => intval($section['UF_FOR_W']),
 				    'ITEMS' => array(),
 				);
 			}
@@ -70,6 +75,7 @@ class Size
 					'ID' => $id,
 					'NAME' => $item['NAME'],
 					'ACTIVE' => $item['ACTIVE'],
+				    'PARENT' => $parent,
 				);
 			}
 
@@ -103,18 +109,37 @@ class Size
 
 	/**
 	 * Возвращает папку с размерами и активные размеры по ID раздела
+	 * если $sectionId не задан, то все папки с размерами
 	 * @param $sectionId
 	 * @return array
 	 * @throws ApiException
 	 */
 	public static function getAppData($sectionId)
 	{
-		$sizes = self::getBySectionId($sectionId);
+		$return = array();
+		if ($sectionId)
+		{
+			$sizes = self::getBySectionId($sectionId);
+			$return = self::getSingleAppData($sizes);
+		}
+		else
+		{
+			$all = self::getAll();
+			foreach ($all['SECTIONS'] as $sizes)
+				$return[] = self::getSingleAppData($sizes);
+		}
 
+		return $return;
+	}
+
+	public static function getSingleAppData($sizes)
+	{
 		$return = array(
 			'ID' => $sizes['ID'],
 			'NAME' => $sizes['NAME'],
 			'TEXT' => $sizes['TEXT'],
+			'FOR_M' => $sizes['FOR_M'],
+			'FOR_W' => $sizes['FOR_W'],
 		);
 		foreach ($sizes['ITEMS'] as $item)
 			if ($item['ACTIVE'] == 'Y')
@@ -167,5 +192,33 @@ class Size
 	{
 		$sizes = self::getBySectionId($sectionId);
 		return $sizes['ITEMS'][$id];
+	}
+
+	/**
+	 * Возвращает
+	 * @param $includedSizes
+	 * @return array
+	 */
+	public static function getExcludedSizes($includedSizes)
+	{
+		$result = array();
+		$all = self::getAll();
+		foreach ($all['SECTIONS'] as $sectionId => $sizes)
+		{
+			$sectionRes = array();
+			$sectionEx = false;
+			foreach ($sizes['ITEMS'] as $item)
+			{
+				$id = $item['ID'];
+				if (in_array($id, $includedSizes))
+					$sectionEx = true;
+				else
+					$sectionRes[] = $id;
+			}
+			if ($sectionEx)
+				$result = array_merge($result, $sectionRes);
+		}
+
+		return $result;
 	}
 }

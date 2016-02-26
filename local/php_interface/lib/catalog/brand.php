@@ -4,8 +4,8 @@ namespace Local\Catalog;
 
 use Local\Common\ExtCache;
 use Local\Common\Utils;
-use Local\Data\User;
 use Local\Api\ApiException;
+use Local\User\Auth;
 
 class Brand
 {
@@ -70,7 +70,7 @@ class Brand
 	public static function getAppData() {
 		$brands = self::getAll(true);
 
-		$userId = User::getCurrentUserId();
+		$userId = Auth::getCurrentUserId();
 
 		$return = array();
 		foreach ($brands['ITEMS'] as $item)
@@ -106,7 +106,7 @@ class Brand
 
 	public static function add($name) {
 		// Проверяем авторизацию (выкинет исключение, если неавторизован)
-		$session = User::checkAuth();
+		$session = Auth::check();
 		$userId = $session['USER_ID'];
 
 		$name = htmlspecialchars(trim($name));

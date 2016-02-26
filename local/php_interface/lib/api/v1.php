@@ -2,8 +2,10 @@
 
 namespace Local\Api;
 
+use Local\Data\Feed;
+use Local\User\Auth;
+use Local\User\User;
 use Local\Data\Faq;
-use Local\Data\User;
 use Local\Data\Ad;
 use Local\Catalog\Condition;
 use Local\Catalog\Color;
@@ -12,6 +14,7 @@ use Local\Catalog\Size;
 use Local\Catalog\Payment;
 use Local\Catalog\Delivery;
 use Local\Catalog\Brand;
+use Local\Catalog\Gender;
 
 class v1 extends Api
 {
@@ -26,9 +29,9 @@ class v1 extends Api
 	protected function auth($args) {
 		$method = $args[0];
 		if ($method == 'phone')
-			return User::authByPhone($this->post['phone']);
+			return Auth::step1($this->post['phone']);
 		elseif ($method == 'verify')
-			return User::verify($this->post['phone'], $this->post['code'], $this->post['user'],
+			return Auth::step2($this->post['phone'], $this->post['code'], $this->post['user'],
 				$this->post['device']);
 		else
 			throw new ApiException(['wrong_endpoint'], 404);
@@ -38,8 +41,14 @@ class v1 extends Api
 		$method = $args[0];
 		if ($method == 'profile')
 			return User::profile();
-		if ($method == 'update')
+		elseif ($method == 'nickname')
+			return User::nickname($this->post['nickname']);
+		elseif ($method == 'update')
 			return User::update($this->post);
+		elseif ($method == 'follow')
+			return User::follow($this->post['publisher']);
+		elseif ($method == 'unfollow')
+			return User::unfollow($this->post['publisher']);
 		else
 			throw new ApiException(['wrong_endpoint'], 404);
 	}
@@ -58,6 +67,8 @@ class v1 extends Api
 			return Payment::getAppData();
 		elseif ($method == 'delivery')
 			return Delivery::getAppData();
+		elseif ($method == 'gender')
+			return Gender::getAppData();
 		elseif ($method == 'brand')
 			return Brand::getAppData();
 		elseif ($method == 'addbrand')
@@ -72,7 +83,13 @@ class v1 extends Api
 			return Ad::add($this->post['section'], $this->post['brand'], $this->post['condition'],
 				$this->post['color'], $this->post['size'], $this->post['material'], $this->post['features'],
 				$this->post['purchase'], $this->post['price'], $this->post['payment'], $this->post['delivery']);
+		elseif ($method == 'list')
+			return Ad::getList($this->request);
 		else
 			throw new ApiException(['wrong_endpoint'], 404);
+	}
+
+	protected function feed() {
+		return Feed::getAppData($this->request);
 	}
 }

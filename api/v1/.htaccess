@@ -5,5 +5,5 @@
 	RewriteCond %{SCRIPT_FILENAME} !-d
 	RewriteCond %{SCRIPT_FILENAME} !-f
 
-	RewriteRule ^(.*)$ /api/v1/api.php?request=$1  [L]
+	RewriteRule ^(.*)$ /api/v1/api.php?request=$1  [QSA,NC,L]
 </IfModule>

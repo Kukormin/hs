@@ -44,13 +44,14 @@ class Delivery
 			while ($item = $rsItems->Fetch())
 			{
 				$id = intval($item['ID']);
-				$return[$item['CODE']] = array(
+				$return['ITEMS'][$item['CODE']] = array(
 					'ID' => $id,
 				    'NAME' => $item['NAME'],
 				    'ACTIVE' => $item['ACTIVE'],
 				    'CODE' => $item['CODE'],
 				    'PRICE' => $item['XML_ID'],
 				);
+				$return['CODES'][$id] = $item['CODE'];
 			}
 
 			$extCache->endDataCache($return);
@@ -64,10 +65,10 @@ class Delivery
 	 * @return array
 	 */
 	public static function getAppData() {
-		$items = self::getAll();
+		$all = self::getAll();
 
 		$return = array();
-		foreach ($items as $item)
+		foreach ($all['ITEMS'] as $item)
 			if ($item['ACTIVE'] == 'Y')
 				$return[] = array(
 					'CODE' => $item['CODE'],
@@ -84,7 +85,17 @@ class Delivery
 	 * @return mixed
 	 */
 	public static function getByCode($code) {
-		$items = self::getAll();
-		return $items[$code];
+		$all = self::getAll();
+		return $all['ITEMS'][$code];
+	}
+
+	/**
+	 * Возвращает код способа отправки по ID
+	 * @param $id
+	 * @return mixed
+	 */
+	public static function getCodeById($id) {
+		$all = self::getAll();
+		return $all['CODES'][$id];
 	}
 }

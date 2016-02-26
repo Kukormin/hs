@@ -22,22 +22,6 @@ class Utils
 	);
 
 	/**
-	 * Обработчики событий
-	 */
-	public static function addEventHandlers() {
-		static $added = false;
-		if (!$added) {
-			$added = true;
-			AddEventHandler('iblock', 'OnAfterIBlockAdd',
-				array(__NAMESPACE__ . '\Utils', 'afterIBlockUpdate'));
-			AddEventHandler('iblock', 'OnAfterIBlockUpdate',
-				array(__NAMESPACE__ . '\Utils', 'afterIBlockUpdate'));
-			AddEventHandler('iblock', 'OnIBlockDelete',
-				array(__NAMESPACE__ . '\Utils', 'afterIBlockUpdate'));
-		}
-	}
-
-	/**
 	 * Возвращает HTTP статус по коду
 	 * @param $code
 	 * @return string
@@ -181,10 +165,19 @@ class Utils
 	}
 
 	/**
-	 * обработчик на редактирование ИБ для сброса кеша
+	 * Возвращает массив для отправки приложению по ID файла
+	 * @param $fileId
+	 * @return array
 	 */
-	public static function afterIBlockUpdate() {
-		self::getAllIBlocks(true);
+	public static function getFileArray($fileId)
+	{
+		$file = new \CFile();
+		return array(
+			'id' => intval($fileId),
+			'url' => $file->GetPath($fileId),
+		);
 	}
+
+
 
 }

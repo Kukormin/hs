@@ -5,15 +5,15 @@ namespace Local\Catalog;
 use Local\Common\ExtCache;
 use Local\Common\Utils;
 
-class Payment
+class Gender
 {
 	/**
 	 * Путь для кеширования
 	 */
-	const CACHE_PATH = 'Local/Catalog/Payment/';
+	const CACHE_PATH = 'Local/Catalog/Gender/';
 
 	/**
-	 * Возвращает все способы оплаты
+	 * Возвращает все
 	 * @param bool $refreshCache для принудительного сброса кеша
 	 * @return array|mixed
 	 */
@@ -32,12 +32,12 @@ class Payment
 		} else {
 			$extCache->startDataCache();
 
-			$iblockId = Utils::getIBlockIdByCode('ad');
+			$iblockId = Utils::getIBlockIdByCode('user');
 
 			$enum = new \CIBlockPropertyEnum();
 			$rsItems = $enum->GetList(array(), array(
 				'IBLOCK_ID' => $iblockId,
-				'CODE' => 'PAYMENT',
+				'CODE' => 'GENDER',
 			));
 			while ($item = $rsItems->Fetch()) {
 				$return['ITEMS'][$item['XML_ID']] = array(
@@ -55,7 +55,7 @@ class Payment
 	}
 
 	/**
-	 * Возвращает активные способы оплаты
+	 * Возвращает список полов
 	 * @return array
 	 */
 	public static function getAppData() {
@@ -72,7 +72,17 @@ class Payment
 	}
 
 	/**
-	 * Возвращает способ оплаты по коду
+	 * Возвращает код пола по ID
+	 * @param $id
+	 * @return mixed
+	 */
+	public static function getCodeById($id) {
+		$all = self::getAll();
+		return $all['CODES'][$id];
+	}
+
+	/**
+	 * Возвращает пол по коду
 	 * @param $code
 	 * @return mixed
 	 */
@@ -81,14 +91,4 @@ class Payment
 		return $all['ITEMS'][$code];
 	}
 
-
-	/**
-	 * Возвращает код способа оплаты по ID
-	 * @param $id
-	 * @return mixed
-	 */
-	public static function getCodeById($id) {
-		$all = self::getAll();
-		return $all['CODES'][$id];
-	}
 }
