@@ -68,7 +68,7 @@ $(document).ready(function() {
 				if (response.responseText.length > 4) {
 					var jsonData = jQuery.parseJSON(response.responseText);
 					console.log(jsonData);
-					if (sUri == '/auth/phone' && sData == '{"phone":"79170010203"}') {
+					if (sUri == '/auth/phone_debug') {
 						jqRow.siblings('#r' + (rowId + 2)).children('td:eq(5)').children('input').val('{"phone":"79170010203","code":"0001","user":' +  jsonData.result.user + ',"device":{"uuid":"0a89df6v7df6sv7r6s07f","pt":"df79b6sd8fbg6","x":320,"y":480}}');
 						jqRow.siblings('#r' + (rowId + 3)).children('td:eq(5)').children('input').val('{"phone":"79170010203","code":"' + jsonData.result.sms + '","user":' +  jsonData.result.user + ',"device":{"uuid":"0a89df6v7df6sv7r6s07f","pt":"df79b6sd8fbg6","x":320,"y":480}}');
 					}
