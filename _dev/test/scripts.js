@@ -69,17 +69,20 @@ $(document).ready(function() {
 					var jsonData = jQuery.parseJSON(response.responseText);
 					console.log(jsonData);
 					if (sUri == '/auth/phone' && sData == '{"phone":"79170010203"}') {
-						jqRow.siblings('#r' + (rowId + 2)).children('td:eq(5)').children('input').val('{"phone":"79170010203","code":"0001","user":' +  jsonData.user + ',"device":{"uuid":"0a89df6v7df6sv7r6s07f","x":320,"y":480}}');
-						jqRow.siblings('#r' + (rowId + 3)).children('td:eq(5)').children('input').val('{"phone":"79170010203","code":"' + jsonData.sms + '","user":' +  jsonData.user + ',"device":{"uuid":"0a89df6v7df6sv7r6s07f","x":320,"y":480}}');
+						jqRow.siblings('#r' + (rowId + 2)).children('td:eq(5)').children('input').val('{"phone":"79170010203","code":"0001","user":' +  jsonData.result.user + ',"device":{"uuid":"0a89df6v7df6sv7r6s07f","pt":"df79b6sd8fbg6","x":320,"y":480}}');
+						jqRow.siblings('#r' + (rowId + 3)).children('td:eq(5)').children('input').val('{"phone":"79170010203","code":"' + jsonData.result.sms + '","user":' +  jsonData.result.user + ',"device":{"uuid":"0a89df6v7df6sv7r6s07f","pt":"df79b6sd8fbg6","x":320,"y":480}}');
 					}
-					if (sUri == '/auth/verify' && jsonData.token) {
+					if (sUri == '/auth/verify' && jsonData.result.token) {
 						jqRow.siblings().each(function() {
 							var td = $(this).children('td:eq(4)');
 							if (td.data('na') == '1') {
-								td.data('auth', jsonData.token);
-								td.html('<b>' + jsonData.token.substr(0, 6) + '...</b>');
+								td.data('auth', jsonData.result.token);
+								td.html('<b>' + jsonData.result.token.substr(0, 6) + '...</b>');
 							}
 						});
+					}
+					if (sUri == '/ad/add' && sVariant == '+ файл') {
+						jqRow.siblings('#r' + (rowId + 10)).children('td:eq(5)').children('input').val('{"ad":' +  jsonData.result.id + '}');
 					}
 				}
 			}

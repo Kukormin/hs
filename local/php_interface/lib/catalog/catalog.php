@@ -5,6 +5,10 @@ namespace Local\Catalog;
 use Local\Common\ExtCache;
 use Local\Common\Utils;
 
+/**
+ * Class Catalog Дерево разделов каталога
+ * @package Local\Catalog
+ */
 class Catalog
 {
 	/**
@@ -48,6 +52,7 @@ class Catalog
 				$return[$id] = array(
 					'ID' => $id,
 					'NAME' => $section['NAME'],
+					'FULL' => $section['CODE'],
 					'ACTIVE' => $section['ACTIVE'],
 					'PARENT' => $parent,
 				    'SIZE' => $section['UF_SIZE'],
@@ -71,9 +76,10 @@ class Catalog
 		foreach ($sections as $item)
 			if ($item['ACTIVE'] == 'Y')
 				$return[] = array(
-					'ID' => $item['ID'],
-					'NAME' => $item['NAME'],
-					'PARENT' => $item['PARENT'],
+					'id' => $item['ID'],
+					'name' => $item['NAME'],
+					'full' => $item['FULL'],
+					'parent' => $item['PARENT'],
 				);
 
 		return $return;

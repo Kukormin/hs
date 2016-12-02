@@ -7,6 +7,10 @@ use Local\Common\Utils;
 use Local\Api\ApiException;
 use Local\User\Auth;
 
+/**
+ * Class Brand Бренды
+ * @package Local\Catalog
+ */
 class Brand
 {
 	/**
@@ -77,8 +81,8 @@ class Brand
 			if ($item['ACTIVE'] == 'Y')
 				if (!$item['USER'] || $item['USER'] == $userId)
 					$return[] = array(
-						'ID' => $item['ID'],
-						'NAME' => $item['NAME'],
+						'id' => $item['ID'],
+						'name' => $item['NAME'],
 					);
 
 		return $return;
@@ -104,6 +108,12 @@ class Brand
 		return $brands['BY_NAME'][$name];
 	}
 
+	/**
+	 * Добавляет бренд (пока только для указанного пользователя)
+	 * @param $name
+	 * @return array
+	 * @throws ApiException
+	 */
 	public static function add($name) {
 		// Проверяем авторизацию (выкинет исключение, если неавторизован)
 		$session = Auth::check();
@@ -127,7 +137,7 @@ class Brand
 		if ($exists)
 			throw new ApiException(['already_exists'], 400);
 
-		// DEBUG: на время тестов
+		// TODO: DEBUG: на время тестов
 		if ($name == 'Новый бренд')
 			return array(
 				'ID' => 0,

@@ -74,10 +74,13 @@ abstract class Api
 				break;
 			case 'POST':
 				$this->request = $this->_cleanInputs($_POST);
+				_log_array($this->request['data']);
+				_log_array(file_get_contents("php://input"));
 				if ($this->request['data'])
 					$this->post = json_decode($this->request['data'], true);
 				else
 					$this->post = json_decode(file_get_contents("php://input"), true);
+				_log_array($this->post);
 				break;
 			case 'GET':
 				$this->request = $this->_cleanInputs($_GET);
@@ -114,7 +117,10 @@ abstract class Api
 	private function _response($data, $status = 200)
 	{
 		header('HTTP/1.1 ' . Utils::getHttpStatusByCode($status));
-		return json_encode($data, JSON_UNESCAPED_UNICODE);
+		return json_encode(array(
+			'result' => $data,
+			'errors' => array(),
+		), JSON_UNESCAPED_UNICODE);
 	}
 
 	/**

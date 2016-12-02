@@ -3,6 +3,7 @@ namespace Local\Common;
 
 /**
  * Class Utils Различные утилиты проекта
+ * @package Local\Common
  */
 class Utils
 {
@@ -11,6 +12,9 @@ class Utils
 	 */
 	const CACHE_PATH = 'Local/Common/Utils/';
 
+	/**
+	 * @var array HTTP статусы
+	 */
 	private static $statusByCode = array(
 		200 => 'OK',
 		400 => 'Bad Request',

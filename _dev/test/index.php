@@ -10,7 +10,7 @@
 	<input id="test_all" type="button" value="Запустить все запросы"/>
 </p>
 <p>
-	Картинки для добавления объявления <input id="picture" name="picture" type="file" multiple />
+	Картинки для добавления <input id="picture" name="picture" type="file" multiple />
 </p>
 <table class="results">
 	<tr>
@@ -46,7 +46,7 @@
 		<td><?= $arTest['METHOD'] ?></td>
 		<td><?= $arTest['URI'] ?></td>
 		<td data-auth="<?= $arTest['AUTH'] ?>"<?= $needAuth ?>><?= $auth ?></td>
-		<td><input name="t<?= $i ?>" type="text" size="100" value="<?= htmlspecialchars($arTest['DATA']) ?>" /></td>
+		<td><input name="txt<?= $i ?>" type="text" size="100" value="<?= htmlspecialchars($arTest['DATA']) ?>" /></td>
 		<td><input type="button" value="Запустить"/></td>
 		<td></td>
 		<td data-need="<?= $arTest['NEED'] ?>"></td>

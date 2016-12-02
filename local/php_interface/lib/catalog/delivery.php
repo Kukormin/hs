@@ -5,6 +5,10 @@ namespace Local\Catalog;
 use Local\Common\ExtCache;
 use Local\Common\Utils;
 
+/**
+ * Class Delivery Способы отправки
+ * @package Local\Catalog
+ */
 class Delivery
 {
 	/**
@@ -21,8 +25,6 @@ class Delivery
 	public static function getAll($refreshCache = false) {
 		$return = array();
 
-		$iblockId = Utils::getIBlockIdByCode('delivery');
-
 		$extCache = new ExtCache(
 			array(
 				__FUNCTION__,
@@ -35,11 +37,14 @@ class Delivery
 		} else {
 			$extCache->startDataCache();
 
+			$iblockId = Utils::getIBlockIdByCode('delivery');
+
 			$iblockElement = new \CIBlockElement();
 			$rsItems = $iblockElement->GetList(array('SORT' => 'ASC'), array(
 				'IBLOCK_ID' => $iblockId,
 			), false, false, array(
 				'ID', 'NAME', 'ACTIVE', 'CODE', 'XML_ID',
+			    'PROPERTY_SHOW_ADDRESS',
 			));
 			while ($item = $rsItems->Fetch())
 			{
@@ -50,6 +55,7 @@ class Delivery
 				    'ACTIVE' => $item['ACTIVE'],
 				    'CODE' => $item['CODE'],
 				    'PRICE' => $item['XML_ID'],
+				    'SHOW_ADDRESS' => $item['PROPERTY_SHOW_ADDRESS_VALUE'] == 'Y',
 				);
 				$return['CODES'][$id] = $item['CODE'];
 			}
@@ -71,9 +77,10 @@ class Delivery
 		foreach ($all['ITEMS'] as $item)
 			if ($item['ACTIVE'] == 'Y')
 				$return[] = array(
-					'CODE' => $item['CODE'],
-					'NAME' => $item['NAME'],
-					'PRICE' => $item['PRICE'],
+					'code' => $item['CODE'],
+					'name' => $item['NAME'],
+					'price' => $item['PRICE'],
+					'showAddress' => $item['SHOW_ADDRESS'],
 				);
 
 		return $return;
@@ -97,5 +104,24 @@ class Delivery
 	public static function getCodeById($id) {
 		$all = self::getAll();
 		return $all['CODES'][$id];
+	}
+
+	/**
+	 * Форматирует массив доставок
+	 * @param $ar
+	 * @param $prices
+	 * @return array
+	 */
+	public static function format($ar, $prices) {
+		$return = array();
+		$prices = json_decode($prices, true);
+		foreach ($ar as $id)
+		{
+			$code = self::getCodeById($id);
+			$price = $prices[$code];
+			if ($code)
+				$return[$code] = $price;
+		}
+		return $return;
 	}
 }

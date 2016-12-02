@@ -28,11 +28,19 @@ class ApiException extends \Exception
 		$this->errors = $errors;
 	}
 
+	/**
+	 * Возвращает HTTP статус по коду
+	 * @return string
+	 */
 	public function getHttpStatus()
 	{
 		return Utils::getHttpStatusByCode($this->status);
 	}
 
+	/**
+	 * Возвращает ошибки
+	 * @return array
+	 */
 	public function getErrors()
 	{
 		return $this->errors;

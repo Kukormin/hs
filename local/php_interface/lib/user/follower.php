@@ -7,7 +7,12 @@ use Bitrix\Main\Entity\Query;
 use Bitrix\Main\Loader;
 use Local\Api\ApiException;
 use Local\Common\ExtCache;
+use Local\Data\News;
 
+/**
+ * Class Follower Подписчики
+ * @package Local\User
+ */
 class Follower
 {
 	/**
@@ -18,7 +23,7 @@ class Follower
 	/**
 	 * ID сущности подписчиков
 	 */
-	const ENTITTY_ID = 1;
+	const ENTITY_ID = 1;
 
 	/**
 	 * Получение подписок и подписчиков для пользователя
@@ -50,7 +55,7 @@ class Follower
 
 			Loader::includeModule('highloadblock');
 
-			$entityInfo = HighloadBlockTable::getById(static::ENTITTY_ID)->Fetch();
+			$entityInfo = HighloadBlockTable::getById(static::ENTITY_ID)->Fetch();
 			$entity = HighloadBlockTable::compileEntity($entityInfo);
 
 			$query = new Query($entity);
@@ -89,7 +94,7 @@ class Follower
 
 		Loader::includeModule('highloadblock');
 
-		$entityInfo = HighloadBlockTable::getById(static::ENTITTY_ID)->Fetch();
+		$entityInfo = HighloadBlockTable::getById(static::ENTITY_ID)->Fetch();
 		$entity = HighloadBlockTable::compileEntity($entityInfo);
 
 		$query = new Query($entity);
@@ -113,6 +118,8 @@ class Follower
 		self::get($follower, true);
 		self::get($publisher, true);
 
+		News::follow($publisher, $follower);
+
 		return $result->getId();
 	}
 
@@ -132,7 +139,7 @@ class Follower
 
 		Loader::includeModule('highloadblock');
 
-		$entityInfo = HighloadBlockTable::getById(static::ENTITTY_ID)->Fetch();
+		$entityInfo = HighloadBlockTable::getById(static::ENTITY_ID)->Fetch();
 		$entity = HighloadBlockTable::compileEntity($entityInfo);
 
 		$query = new Query($entity);
@@ -151,6 +158,8 @@ class Follower
 
 			self::get($follower, true);
 			self::get($publisher, true);
+
+			News::unfollow($publisher, $follower);
 		}
 		else
 			throw new ApiException(['not_exists'], 400);

@@ -5,6 +5,10 @@ namespace Local\Catalog;
 use Local\Common\ExtCache;
 use Local\Common\Utils;
 
+/**
+ * Class Color Цвета
+ * @package Local\Catalog
+ */
 class Color
 {
 	/**
@@ -70,10 +74,10 @@ class Color
 		foreach ($colors as $item)
 			if ($item['ACTIVE'] == 'Y')
 				$return[] = array(
-					'ID' => $item['ID'],
-					'RU' => $item['NAME'],
-					'EN' => $item['CODE'],
-					'HEX' => $item['XML_ID'],
+					'id' => $item['ID'],
+					'ru' => $item['NAME'],
+					'en' => $item['CODE'],
+					'hex' => $item['XML_ID'],
 				);
 
 		return $return;

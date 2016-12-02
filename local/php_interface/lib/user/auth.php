@@ -3,7 +3,12 @@
 namespace Local\User;
 
 use Local\Api\ApiException;
+use Local\Common\Sms;
 
+/**
+ * Class Auth Авторизация пользователя
+ * @package Local\User
+ */
 class Auth
 {
 	/**
@@ -20,6 +25,7 @@ class Auth
 		if (strlen($phone) != 11)
 			throw new ApiException(['wrong_phone_format'], 400);
 
+		$newUser = false;
 		// Ищем по телефону
 		$user = User::getByPhone($phone);
 		if ($user['ACTIVE'] == 'N')
@@ -28,8 +34,11 @@ class Auth
 		// Если не найден, то пробуем создать
 		if (!$user)
 			if (User::addByPhone($phone))
+			{
 				// Если пользователь создан, получаем все его поля, заодно обновляя кеш
 				$user = User::getByPhone($phone, true);
+				$newUser = true;
+			}
 
 		$userId = $user['ID'];
 		// Теоретически не должна возникать, т.к. пользователь создается если не найден
@@ -38,13 +47,48 @@ class Auth
 
 		$smsKey = self::generateSmsKey();
 		self::saveSmsKey($userId, $smsKey);
-		$sended = self::sendSmsKey($smsKey);
-		if (!$sended)
-			throw new ApiException(['sms_error'], 500);
+		self::sendSmsKey($phone, $smsKey);
 
 		return array(
 			'user' => $userId,
-	        'sms' => $smsKey,
+			'new' => $newUser,
+		);
+	}
+
+	public static function step1_debug($phone) {
+		$phone = trim($phone);
+		if (strlen($phone) == 0)
+			throw new ApiException(['empty_phone'], 400);
+		if (strlen($phone) != 11)
+			throw new ApiException(['wrong_phone_format'], 400);
+
+		$newUser = false;
+		// Ищем по телефону
+		$user = User::getByPhone($phone);
+		if ($user['ACTIVE'] == 'N')
+			throw new ApiException(['user_blocked'], 403);
+
+		// Если не найден, то пробуем создать
+		if (!$user)
+			if (User::addByPhone($phone))
+			{
+				// Если пользователь создан, получаем все его поля, заодно обновляя кеш
+				$user = User::getByPhone($phone, true);
+				$newUser = true;
+			}
+
+		$userId = $user['ID'];
+		// Теоретически не должна возникать, т.к. пользователь создается если не найден
+		if (!$userId)
+			throw new ApiException(['user_not_founded'], 500);
+
+		$smsKey = self::generateSmsKey();
+		self::saveSmsKey($userId, $smsKey);
+
+		return array(
+			'user' => $userId,
+			'sms' => $smsKey,
+			'new' => $newUser,
 		);
 	}
 
@@ -70,6 +114,8 @@ class Auth
 
 		// Ищем по телефону (без кеша, т.к. смс не в кеше)
 		$user = User::getByPhone($phone, true);
+		if ($user['ACTIVE'] == 'N')
+			throw new ApiException(['user_blocked'], 403);
 		if ($userId != $user['ID'])
 			throw new ApiException(['user_not_founded_by_user_id'], 400);
 
@@ -82,6 +128,16 @@ class Auth
 
 		return array(
 			'token' => $authToken,
+		);
+	}
+
+	public static function setPt($pt)
+	{
+		$session = self::check();
+		Session::setPt($session, $pt);
+
+		return array(
+			'token' => $pt,
 		);
 	}
 
@@ -134,10 +190,27 @@ class Auth
 
 	/**
 	 * Отправляет смс с ключом
+	 * @param $phone
+	 * @param $code
+	 * @return bool
+	 * @throws ApiException
 	 */
-	private static function sendSmsKey() {
-		// TODO:
-		$sended = true;
+	private static function sendSmsKey($phone, $code) {
+
+		$sms = new Sms();
+		$messages = array(
+			array(
+				'clientId' => '1',
+				'phone' => $phone,
+				'text' => $code,
+				'sender' => 'MediaGramma',
+			),
+		);
+		$res = $sms->send($messages, 'codeQueue');
+		$sended = $res['messages'][0]['status'] == 'accepted';
+
+		if (!$sended)
+			throw new ApiException(['sms_error', $res['messages'][0]], 500);
 
 		return $sended;
 	}

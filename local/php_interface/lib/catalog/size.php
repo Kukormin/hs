@@ -6,6 +6,10 @@ use Local\Common\ExtCache;
 use Local\Common\Utils;
 use Local\Api\ApiException;
 
+/**
+ * Class Size Размеры
+ * @package Local\Catalog
+ */
 class Size
 {
 	/**
@@ -120,7 +124,8 @@ class Size
 		if ($sectionId)
 		{
 			$sizes = self::getBySectionId($sectionId);
-			$return = self::getSingleAppData($sizes);
+			if ($sizes)
+				$return = self::getSingleAppData($sizes);
 		}
 		else
 		{
@@ -132,20 +137,25 @@ class Size
 		return $return;
 	}
 
+	/**
+	 * Возвращает размеры указанной размерной линейки
+	 * @param $sizes
+	 * @return array
+	 */
 	public static function getSingleAppData($sizes)
 	{
 		$return = array(
-			'ID' => $sizes['ID'],
-			'NAME' => $sizes['NAME'],
-			'TEXT' => $sizes['TEXT'],
-			'FOR_M' => $sizes['FOR_M'],
-			'FOR_W' => $sizes['FOR_W'],
+			'id' => $sizes['ID'],
+			'name' => $sizes['NAME'],
+			'text' => $sizes['TEXT'],
+			'm' => $sizes['FOR_M'],
+			'w' => $sizes['FOR_W'],
 		);
 		foreach ($sizes['ITEMS'] as $item)
 			if ($item['ACTIVE'] == 'Y')
-				$return['ITEMS'][] = array(
-					'ID' => $item['ID'],
-					'NAME' => $item['NAME'],
+				$return['items'][] = array(
+					'id' => $item['ID'],
+					'name' => $item['NAME'],
 				);
 
 		return $return;

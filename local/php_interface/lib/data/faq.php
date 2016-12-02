@@ -5,6 +5,10 @@ namespace Local\Data;
 use Local\Common\ExtCache;
 use Local\Common\Utils;
 
+/**
+ * Class Faq Частые вопросы и ответы
+ * @package Local\Data
+ */
 class Faq
 {
 	/**
@@ -43,10 +47,10 @@ class Faq
 			{
 				$id = intval($section['ID']);
 				$parent = intval($section['IBLOCK_SECTION_ID']);
-				$return['SECTIONS'][] = array(
-					'ID' => $id,
-					'NAME' => $section['NAME'],
-					'PARENT' => $parent,
+				$return['sections'][] = array(
+					'id' => $id,
+					'name' => $section['NAME'],
+					'parent' => $parent,
 				);
 			}
 
@@ -61,11 +65,11 @@ class Faq
 			{
 				$id = intval($item['ID']);
 				$parent = intval($item['IBLOCK_SECTION_ID']);
-				$return['ITEMS'][] = array(
-					'ID' => $id,
-					'Q' => $item['NAME'],
-					'A' => $item['PREVIEW_TEXT'],
-				    'PARENT' => $parent,
+				$return['items'][] = array(
+					'id' => $id,
+					'q' => $item['NAME'],
+					'a' => $item['PREVIEW_TEXT'],
+				    'parent' => $parent,
 				);
 			}
 

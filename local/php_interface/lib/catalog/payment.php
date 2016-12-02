@@ -5,6 +5,10 @@ namespace Local\Catalog;
 use Local\Common\ExtCache;
 use Local\Common\Utils;
 
+/**
+ * Class Payment Способы оплаты
+ * @package Local\Catalog
+ */
 class Payment
 {
 	/**
@@ -32,20 +36,23 @@ class Payment
 		} else {
 			$extCache->startDataCache();
 
-			$iblockId = Utils::getIBlockIdByCode('ad');
+			$iblockId = Utils::getIBlockIdByCode('payment');
 
-			$enum = new \CIBlockPropertyEnum();
-			$rsItems = $enum->GetList(array(), array(
+			$iblockElement = new \CIBlockElement();
+			$rsItems = $iblockElement->GetList(array('SORT' => 'ASC'), array(
 				'IBLOCK_ID' => $iblockId,
-				'CODE' => 'PAYMENT',
+			), false, false, array(
+				'ID', 'NAME', 'CODE',
 			));
-			while ($item = $rsItems->Fetch()) {
-				$return['ITEMS'][$item['XML_ID']] = array(
-					'ID' => $item['ID'],
-					'XML_ID' => $item['XML_ID'],
-					'VALUE' => $item['VALUE'],
+			while ($item = $rsItems->Fetch())
+			{
+				$id = intval($item['ID']);
+				$return['ITEMS'][$item['CODE']] = array(
+					'ID' => $id,
+					'NAME' => $item['NAME'],
+					'CODE' => $item['CODE'],
 				);
-				$return['CODES'][$item['ID']] = $item['XML_ID'];
+				$return['CODES'][$id] = $item['CODE'];
 			}
 
 			$extCache->endDataCache($return);
@@ -64,8 +71,8 @@ class Payment
 		$return = array();
 		foreach ($all['ITEMS'] as $item)
 			$return[] = array(
-				'CODE' => $item['XML_ID'],
-				'NAME' => $item['VALUE'],
+				'code' => $item['CODE'],
+				'name' => $item['NAME'],
 			);
 
 		return $return;
@@ -90,5 +97,21 @@ class Payment
 	public static function getCodeById($id) {
 		$all = self::getAll();
 		return $all['CODES'][$id];
+	}
+
+	/**
+	 * Возвращает массив кодов по массиву ID
+	 * @param $ar
+	 * @return array
+	 */
+	public static function format($ar) {
+		$return = array();
+		foreach ($ar as $id)
+		{
+			$code = self::getCodeById($id);
+			if ($code)
+				$return[] = $code;
+		}
+		return $return;
 	}
 }

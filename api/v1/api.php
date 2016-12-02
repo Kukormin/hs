@@ -13,6 +13,7 @@ catch (ApiException $e)
 {
 	header('HTTP/1.1 ' . $e->getHttpStatus());
 	$return = array(
+		'result' => null,
 		'errors' => $e->getErrors(),
 	);
 	if ($e->getMessage())

@@ -1,23 +1,23 @@
 <?
 
-namespace Local\Catalog;
+namespace Local\Data;
 
 use Local\Common\ExtCache;
 use Local\Common\Utils;
 
 /**
- * Class Condition Состояния товаров в объявлениях
- * @package Local\Catalog
+ * Class Options Настройки
+ * @package Local\Data
  */
-class Condition
+class Options
 {
 	/**
 	 * Путь для кеширования
 	 */
-	const CACHE_PATH = 'Local/Catalog/Condition/';
+	const CACHE_PATH = 'Local/Data/Options/';
 
 	/**
-	 * Возвращает все состояния товара
+	 * Возвращает настройки сайта
 	 * (учитывает теговый кеш)
 	 * @param bool $refreshCache для принудительного сброса кеша
 	 * @return array|mixed
@@ -37,23 +37,23 @@ class Condition
 		} else {
 			$extCache->startDataCache();
 
-			$iblockId = Utils::getIBlockIdByCode('condition');
+			$iblockId = Utils::getIBlockIdByCode('options');
 
 			$iblockElement = new \CIBlockElement();
-			$rsItems = $iblockElement->GetList(array('SORT' => 'ASC'), array(
+			$rsItems = $iblockElement->GetList(array(), array(
 				'IBLOCK_ID' => $iblockId,
 			), false, false, array(
-				'ID', 'NAME', 'ACTIVE',
+				'ID', 'CODE', 'XML_ID', 'PREVIEW_TEXT',
 			));
 			while ($item = $rsItems->Fetch())
 			{
-				$id = intval($item['ID']);
-				$return[$id] = array(
-					'ID' => $id,
-				    'NAME' => $item['NAME'],
-				    'ACTIVE' => $item['ACTIVE'],
-				);
+				if ($item['PREVIEW_TEXT'])
+					$value = $item['PREVIEW_TEXT'];
+				else
+					$value = intval($item['XML_ID']);
+				$return[$item['CODE']] = $value;
 			}
+
 
 			$extCache->endDataCache($return);
 		}
@@ -62,30 +62,29 @@ class Condition
 	}
 
 	/**
-	 * Возвращает активные состояния товара
+	 * Возвращает настройки
 	 * @return array
 	 */
 	public static function getAppData() {
-		$conditions = self::getAll();
+		$all = self::getAll();
 
 		$return = array();
-		foreach ($conditions as $item)
-			if ($item['ACTIVE'] == 'Y')
-				$return[] = array(
-					'id' => $item['ID'],
-					'name' => $item['NAME'],
-				);
+		foreach ($all as $code => $value)
+			$return[] = array(
+				'code' => $code,
+				'value' => $value,
+			);
 
 		return $return;
 	}
 
 	/**
-	 * Возвращает состояние по ID
-	 * @param $id
+	 * Возвращает настройку по коду
+	 * @param $code
 	 * @return mixed
 	 */
-	public static function getById($id) {
-		$conditions = self::getAll();
-		return $conditions[$id];
+	public static function get($code) {
+		$all = self::getAll();
+		return $all[$code];
 	}
 }

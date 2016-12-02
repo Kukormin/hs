@@ -5,6 +5,10 @@ namespace Local\Common;
 use Local\User\Session;
 use Local\User\User;
 
+/**
+ * Class Handlers Обработчики событий
+ * @package Local\Common
+ */
 class Handlers
 {
 	/**
@@ -16,17 +20,35 @@ class Handlers
 			$added = true;
 			AddEventHandler('iblock', 'OnBeforeIBlockElementDelete',
 				array(__NAMESPACE__ . '\Handlers', 'beforeIBlockElementDelete'));
+			AddEventHandler('iblock', 'OnBeforeIBlockElementUpdate',
+				array(__NAMESPACE__ . '\Handlers', 'beforeIBlockElementUpdate'));
 			AddEventHandler('iblock', 'OnAfterIBlockElementUpdate',
 				array(__NAMESPACE__ . '\Handlers', 'afterIBlockElementUpdate'));
 			AddEventHandler('iblock', 'OnAfterIBlockElementDelete',
 				array(__NAMESPACE__ . '\Handlers', 'afterIBlockElementDelete'));
 			AddEventHandler('iblock', 'OnAfterIBlockAdd',
-				array(__NAMESPACE__ . '\Utils', 'afterIBlockUpdate'));
+				array(__NAMESPACE__ . '\Handlers', 'afterIBlockUpdate'));
 			AddEventHandler('iblock', 'OnAfterIBlockUpdate',
-				array(__NAMESPACE__ . '\Utils', 'afterIBlockUpdate'));
+				array(__NAMESPACE__ . '\Handlers', 'afterIBlockUpdate'));
 			AddEventHandler('iblock', 'OnIBlockDelete',
-				array(__NAMESPACE__ . '\Utils', 'afterIBlockUpdate'));
+				array(__NAMESPACE__ . '\Handlers', 'afterIBlockUpdate'));
+			AddEventHandler('main', 'OnBuildGlobalMenu',
+				array(__NAMESPACE__ . '\Handlers', 'buildGlobalMenu'));
 		}
+	}
+
+	public static function buildGlobalMenu(&$adminMenu, &$moduleMenu) {
+		// Добавляем пункты меню в админку
+		$moduleMenu[] = array(
+			'parent_menu' => 'global_menu_services',
+			'section' => 'chat',
+			'sort' => 60,
+			'text' => 'Чаты',
+			'title' => 'Чаты в рамках сделок и вопросы в службу поддержки',
+			'url' => 'chat.php',
+			'icon' => 'forum_menu_icon',
+			'items_id' => 'chat',
+		);
 	}
 
 	/**
@@ -36,14 +58,36 @@ class Handlers
 	 */
 	public static function beforeIBlockElementDelete($id)
 	{
-		$iblockId = self::getIblockById($id);
+		/*global $APPLICATION;
+		$iblockId = self::getIblockByElementId($id);
 		if ($iblockId == Utils::getIBlockIdByCode('user'))
 		{
-			global $APPLICATION;
 			// TODO:
 			$APPLICATION->throwException("\nНельзя удалить пользователя, у которого есть сделки");
 			return false;
 		}
+		if ($iblockId == Utils::getIBlockIdByCode('deal'))
+		{
+			$APPLICATION->throwException("\nНельзя удалять сделки");
+			return false;
+		}*/
+
+		return true;
+	}
+
+	/**
+	 * Обработчик события перед изменением элемента с возможностью отмены изменений
+	 * @param $arFields
+	 * @return bool
+	 */
+	public static function beforeIBlockElementUpdate(&$arFields)
+	{
+		/*global $APPLICATION;
+		if ($arFields['IBLOCK_ID'] == Utils::getIBlockIdByCode('deal'))
+		{
+			$APPLICATION->throwException("\nЗапрещено редактировать сделку");
+			return false;
+		}*/
 
 		return true;
 	}
@@ -118,7 +162,7 @@ class Handlers
 	 * @param $id
 	 * @return string
 	 */
-	private static function getIblockById($id)
+	private static function getIblockByElementId($id)
 	{
 		$iblock = '';
 		$iblockElement = new \CIBlockElement();

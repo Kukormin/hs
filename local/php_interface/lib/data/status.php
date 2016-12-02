@@ -1,23 +1,23 @@
 <?
 
-namespace Local\Catalog;
+namespace Local\Data;
 
 use Local\Common\ExtCache;
 use Local\Common\Utils;
 
 /**
- * Class Gender Пол
- * @package Local\Catalog
+ * Class Status Статусы сделок
+ * @package Local\Data
  */
-class Gender
+class Status
 {
 	/**
 	 * Путь для кеширования
 	 */
-	const CACHE_PATH = 'Local/Catalog/Gender/';
+	const CACHE_PATH = 'Local/Data/Status/';
 
 	/**
-	 * Возвращает все
+	 * Возвращает все статусы сделки
 	 * @param bool $refreshCache для принудительного сброса кеша
 	 * @return array|mixed
 	 */
@@ -36,24 +36,26 @@ class Gender
 		} else {
 			$extCache->startDataCache();
 
-			$iblockId = Utils::getIBlockIdByCode('gender');
+			$iblockId = Utils::getIBlockIdByCode('statuses');
 
 			$iblockElement = new \CIBlockElement();
-			$rsItems = $iblockElement->GetList(array(), array(
+			$rsItems = $iblockElement->GetList(array('SORT' => 'ASC'), array(
 				'IBLOCK_ID' => $iblockId,
 			), false, false, array(
 				'ID', 'NAME', 'CODE',
+			    'PROPERTY_SELLER_PUSH',
+			    'PROPERTY_BUYER_PUSH',
 			));
 			while ($item = $rsItems->Fetch())
 			{
-				$id = intval($item['ID']);
-				$code = trim($item['CODE']);
-				$return['ITEMS'][$code] = array(
-					'ID' => $id,
+				$return['ITEMS'][$item['CODE']] = array(
+					'ID' => intval($item['ID']),
+					'CODE' => $item['CODE'],
 					'NAME' => $item['NAME'],
-					'CODE' => $code,
+				    'SELLER' => $item['PROPERTY_SELLER_PUSH_VALUE'],
+				    'BUYER' => $item['PROPERTY_BUYER_PUSH_VALUE'],
 				);
-				$return['CODES'][$id] = $code;
+				$return['CODES'][$item['ID']] = $item['CODE'];
 			}
 
 			$extCache->endDataCache($return);
@@ -63,7 +65,7 @@ class Gender
 	}
 
 	/**
-	 * Возвращает список полов
+	 * Возвращает статусы
 	 * @return array
 	 */
 	public static function getAppData() {
@@ -80,17 +82,7 @@ class Gender
 	}
 
 	/**
-	 * Возвращает код пола по ID
-	 * @param $id
-	 * @return mixed
-	 */
-	public static function getCodeById($id) {
-		$all = self::getAll();
-		return $all['CODES'][$id];
-	}
-
-	/**
-	 * Возвращает пол по коду
+	 * Возвращает статус по коду
 	 * @param $code
 	 * @return mixed
 	 */
@@ -99,4 +91,14 @@ class Gender
 		return $all['ITEMS'][$code];
 	}
 
+
+	/**
+	 * Возвращает код статуса по ID
+	 * @param $id
+	 * @return mixed
+	 */
+	public static function getCodeById($id) {
+		$all = self::getAll();
+		return $all['CODES'][$id];
+	}
 }

@@ -3,6 +3,7 @@
 namespace Local\Data;
 
 use Local\Catalog\Delivery;
+use Local\Catalog\Gender;
 use Local\Catalog\Payment;
 use Local\Catalog\Catalog;
 use Local\Catalog\Brand;
@@ -13,8 +14,15 @@ use Local\Common\ExtCache;
 use Local\Common\Utils;
 use Local\Api\ApiException;
 use Local\User\Auth;
+use Local\User\Favorite;
 use Local\User\User;
 
+// TODO: добавить индексы в БД
+
+/**
+ * Class Ad Объявления (товары)
+ * @package Local\Data
+ */
 class Ad
 {
 	/**
@@ -27,147 +35,324 @@ class Ad
 	 */
 	const DEFAULT_COUNT = 10;
 
-	public static function add($sectionId, $brandId, $conditionId, $colorId, $sizeId, $material, $features,
-	                           $purchase, $price, $payment, $delivery) {
+	/**
+	 * Можно купить
+	 */
+	const CAN_BUY_ID = 20;
 
-		// Проверяем авторизацию (выкинет исключение, если неавторизован)
-		$session = Auth::check();
-
+	/**
+	 * Проверка параметров перед созданием или изменением объявления
+	 * @param $params
+	 * @return array
+	 * @throws ApiException
+	 */
+	private static function checkParams($params)
+	{
 		$errors = array();
-
-		// пользователь
-		$userId = $session['USER_ID'];
+		$props = array();
 
 		// Раздел каталога
-		$sectionId = intval($sectionId);
-		$section = Catalog::getSectionById($sectionId);
+		$props['CATEGORY'] = intval($params['section']);
+		$section = Catalog::getSectionById($props['CATEGORY']);
 		if (!$section || $section['ACTIVE'] != 'Y')
 			$errors[] = 'wrong_section';
 
 		// Бренд
-		$brandId = intval($brandId);
-		$brand = Brand::getById($brandId);
+		$props['BRAND'] = intval($params['brand']);
+		$brand = Brand::getById($props['BRAND']);
 		if (!$brand || $brand['ACTIVE'] != 'Y')
 			$errors[] = 'wrong_brand';
 
+		// Половой признак
+		if ($params['gender'])
+		{
+			$gender = Gender::getByCode($params['gender']);
+			if (!$gender)
+				$errors[] = 'wrong_gender';
+			else
+				$props['GENDER'] = $gender['ID'];
+		}
+
 		// Состояние
-		$conditionId = intval($conditionId);
-		$condition = Condition::getById($conditionId);
+		$props['CONDITION'] = intval($params['condition']);
+		$condition = Condition::getById($props['CONDITION']);
 		if (!$condition || $condition['ACTIVE'] != 'Y')
 			$errors[] = 'wrong_condition';
 
 		// Цвет
-		$colorId = intval($colorId);
-		$color = Color::getById($colorId);
+		$props['COLOR'] = intval($params['color']);
+		$color = Color::getById($props['COLOR']);
 		if (!$color || $color['ACTIVE'] != 'Y')
 			$errors[] = 'wrong_color';
 
 		// Размер
-		$sizeId = intval($sizeId);
-		if ($section && $sizeId)
+		$props['SIZE'] = intval($params['size']);
+		if ($section && $props['SIZE'])
 		{
-			$size = Size::getBySectionAndId($sectionId, $sizeId);
+			$size = Size::getBySectionAndId($props['CATEGORY'], $props['SIZE']);
 			if (!$size || $size['ACTIVE'] != 'Y')
 				$errors[] = 'wrong_size';
 		}
 
 		// Материал
-		$material = htmlspecialchars(trim($material));
+		$props['MATERIAL'] = htmlspecialchars(trim($params['material']));
 
 		// Особенности и комментарии
-		$features = htmlspecialchars(trim($features));
-		if (!$features)
+		$props['FEATURES'] = htmlspecialchars(trim($params['features']));
+		if (!$props['FEATURES'])
 			$errors[] = 'empty_features';
 
 		// Цены
-		$purchase = intval($purchase);
-		if ($purchase < 0)
+		$props['PURCHASE'] = intval($params['purchase']);
+		if ($props['PURCHASE'] < 0)
 			$errors[] = 'wrong_purchase';
-		if ($price <= 0)
+		$props['PRICE'] = intval($params['price']);
+		if ($props['PRICE'] <= 0)
 			$errors[] = 'wrong_price';
 
 		// Способы оплаты
 		$paymentIds = array();
+		$paymentAgreement = false; // содержит ли оплату "По договоренности"
 		$paymentError = false;
-		foreach ($payment as $code)
+		foreach ($params['payment'] as $code)
 		{
 			$arPayment = Payment::getByCode($code);
 			if ($arPayment)
+			{
 				$paymentIds[] = $arPayment['ID'];
+				if ($code == 'agreement')
+					$paymentAgreement = true;
+			}
 			else
 				$paymentError = true;
 		}
+		sort($paymentIds);
 		if ($paymentError || !$paymentIds)
 			$errors[] = 'wrong_paymemt';
+		$props['PAYMENT'] = $paymentIds;
 
 		// Способы отправки
 		$deliveryIds = array();
 		$deliveryError = false;
-		foreach ($delivery as $code => $p)
+		$deliveryPersonal = false; // присутствует ли в доставках личная встреча
+		foreach ($params['delivery'] as $code => $p)
 		{
 			$arDelivery = Delivery::getByCode($code);
 			if ($arDelivery)
+			{
 				$deliveryIds[] = $arDelivery['ID'];
+				if ($code == 'personal')
+					$deliveryPersonal = true;
+			}
 			else
 				$deliveryError = true;
 		}
+		sort($deliveryIds);
 		if ($deliveryError || !$deliveryIds)
 			$errors[] = 'wrong_delivery';
+		$props['DELIVERY'] = $deliveryIds;
+		$props['DELIVERY_PRICES'] = json_encode($params['delivery']);
+
+		// Если оплата только по договоренности и доставка не содержит личную встречу
+		if ($paymentAgreement && count($paymentIds) == 1 && !$deliveryPersonal)
+			$errors[] = 'wrong_payment_delivery';
 
 		// Исключение, если ошибки в параметрах
 		if ($errors)
 			throw new ApiException($errors, 400);
 
+		$props['NAME'] = $section['NAME'] . ' ' . $brand['NAME'];
+		$props['CAN_BUY'] = self::CAN_BUY_ID;
+
+		return $props;
+	}
+
+	/**
+	 * Добавляет объявление
+	 * @param $params
+	 * @return array
+	 * @throws ApiException
+	 */
+	public static function add($params)
+	{
+		// Проверяем авторизацию (выкинет исключение, если неавторизован)
+		$session = Auth::check();
+		$userId = $session['USER_ID'];
+
+		$props = self::checkParams($params);
+
 		$fileIds = array();
-		$f = new \CFile();
 		foreach ($_FILES as $file)
-		{
-			$file['MODULE_ID'] = '_ad';
-			$fileId = $f->SaveFile($file, 'ad');
-			if (!$fileId)
-				throw new ApiException(['photo_upload_error'], 500);
-			$fileIds[] = $fileId;
-		}
+			$fileIds[] = $file;
 		if (!$fileIds)
 			throw new ApiException(['least_one_photo_needed'], 400);
+		$props['PHOTO'] = $fileIds;
 
-		//
-		// Добавление объявления
-		//
+		$props['USER'] = $userId;
+		$name = $props['NAME'];
+		unset($props['NAME']);
+
 		$iblockElement = new \CIBlockElement();
 		$iblockId = Utils::getIBlockIdByCode('ad');
-		$name = $section['NAME'] . ' ' . $brand['NAME'];
 		$id = $iblockElement->Add(array(
 			'IBLOCK_ID' => $iblockId,
 			'NAME' => $name,
-			'PROPERTY_VALUES' => array(
-				'USER' => $userId,
-				'CATEGORY' => $sectionId,
-				'BRAND' => $brandId,
-				'CONDITION' => $conditionId,
-				'COLOR' => $colorId,
-				'SIZE' => $sizeId,
-				'MATERIAL' => $material,
-				'FEATURES' => $features,
-				'PURCHASE' => $purchase,
-				'PRICE' => $price,
-				'PAYMENT' => $paymentIds,
-				'DELIVERY' => $deliveryIds,
-				'DELIVERY_PRICES' => json_encode($delivery),
-				'PHOTO' => $fileIds,
-			),
+			'PROPERTY_VALUES' => $props,
 		));
 		if (!$id)
 			throw new ApiException(['ad_add_error'], 500, $iblockElement->LAST_ERROR);
+
+		// обновляем кеш
+		self::getCountByUser($userId, true);
+		self::clearListCache();
 
 		// Добавляем объявление в ленту
 		Feed::addAd($id, $name);
 
 		return array(
-			'ID' => $id,
+			'id' => $id,
 		);
 	}
 
+	/**
+	 * Обновляет объявление
+	 * @param $adId
+	 * @param $params
+	 * @return array
+	 * @throws ApiException
+	 */
+	public static function update($adId, $params)
+	{
+		// Проверяем авторизацию (выкинет исключение, если неавторизован)
+		$session = Auth::check();
+		$userId = $session['USER_ID'];
+
+		if (!$adId)
+			throw new ApiException(['wrong_ad'], 400);
+
+		$ad = self::getById($adId);
+		if (!$ad)
+			throw new ApiException(['ad_not_found'], 400);
+
+		if ($ad['USER'] != $userId)
+			throw new ApiException(['not_your_ad'], 400);
+
+		if (!$ad['CAN_BUY'])
+			throw new ApiException(['ad_with_deal'], 400);
+
+		$props = self::checkParams($params);
+
+		$fileIds = array();
+		foreach ($_FILES as $file)
+			$fileIds[] = $file;
+		if ($fileIds)
+			$props['PHOTO'] = $fileIds;
+
+		$name = $props['NAME'];
+		unset($props['NAME']);
+
+		$iblockElement = new \CIBlockElement();
+		$iblockId = Utils::getIBlockIdByCode('ad');
+		$refreshCache = false;
+
+		if ($name != $ad['name'])
+		{
+			$res = $iblockElement->Update($adId, array('NAME' => $name));
+			if (!$res)
+				throw new ApiException(['ad_update_error'], 500, $iblockElement->LAST_ERROR);
+			$refreshCache = true;
+		}
+
+		$update = array();
+		foreach ($props as $code => $value)
+		{
+			if ($ad[$code] != $value)
+				$update[$code] = $value;
+		}
+		if ($update)
+		{
+			$iblockElement->SetPropertyValuesEx($adId, $iblockId, $update);
+			$refreshCache = true;
+		}
+
+		if ($refreshCache)
+		{
+			// обновляем кеш
+			self::getById($adId, true);
+			self::clearListCache();
+		}
+
+		return array(
+			'id' => $adId,
+		);
+	}
+
+	/**
+	 * Обновляет свойство "Можно купить" в объявлении
+	 * @param $adId
+	 * @param $can_buy
+	 * @return mixed
+	 */
+	public static function updateCanBuy($adId, $can_buy)
+	{
+		$iblockElement = new \CIBlockElement();
+		$iblockId = Utils::getIBlockIdByCode('ad');
+		$value = $can_buy ? self::CAN_BUY_ID : false;
+		$iblockElement->SetPropertyValuesEx($adId, $iblockId, array('CAN_BUY' => $value));
+
+		// обновляем кеш
+		self::clearListCache();
+		self::getById($adId, true);
+
+		return $adId;
+	}
+
+	/**
+	 * Удаление объявления
+	 * @param $adId
+	 * @return array
+	 * @throws ApiException
+	 */
+	public static function delete($adId)
+	{
+		// Проверяем авторизацию (выкинет исключение, если неавторизован)
+		$session = Auth::check();
+		$userId = $session['USER_ID'];
+
+		if (!$adId)
+			throw new ApiException(['wrong_ad'], 400);
+
+		$ad = self::getById($adId);
+		if (!$ad)
+			throw new ApiException(['ad_not_found'], 400);
+
+		if ($ad['USER'] != $userId)
+			throw new ApiException(['not_your_ad'], 400);
+
+		if (!$ad['CAN_BUY'])
+			throw new ApiException(['ad_with_deal'], 400);
+
+		$iblockElement = new \CIBlockElement();
+		$res = $iblockElement->Update($adId, array('ACTIVE' => 'N'));
+		if (!$res)
+			throw new ApiException(['ad_delete_error'], 500, $iblockElement->LAST_ERROR);
+
+		// обновляем кеш
+		self::getById($adId, true);
+		self::getCountByUser($userId, true);
+		self::clearListCache();
+
+		return array(
+			'id' => $adId,
+		);
+	}
+
+	/**
+	 * Возвращает объявление по ID
+	 * @param $id
+	 * @param bool $refreshCache
+	 * @return array|mixed
+	 */
 	public static function getById($id, $refreshCache = false) {
 		$id = intval($id);
 
@@ -192,11 +377,13 @@ class Ad
 			$rsItems = $iblockElement->GetList(array(), array(
 				'IBLOCK_ID' => $iblockId,
 				'ID' => $id,
+				'ACTIVE' => 'Y',
 			), false, false, array(
 				'ID', 'IBLOCK_ID', 'NAME',
 				'PROPERTY_USER',
 				'PROPERTY_CATEGORY',
 				'PROPERTY_BRAND',
+				'PROPERTY_GENDER',
 				'PROPERTY_CONDITION',
 				'PROPERTY_COLOR',
 				'PROPERTY_SIZE',
@@ -208,40 +395,33 @@ class Ad
 				'PROPERTY_DELIVERY',
 				'PROPERTY_DELIVERY_PRICES',
 				'PROPERTY_PHOTO',
+				'PROPERTY_CAN_BUY',
 			));
 			if ($item = $rsItems->Fetch())
 			{
-				$photo = array();
-				foreach ($item['PROPERTY_PHOTO_VALUE'] as $id)
-					$photo[] = Utils::getFileArray($id);
-				$payment = array();
-				foreach ($item['PROPERTY_PAYMENT_VALUE'] as $id => $p)
-					$payment[] = Payment::getCodeById($id);
-				$delivery = array();
-				$deliveryPrice = json_decode($item['PROPERTY_DELIVERY_PRICES_VALUE'], true);
-				foreach ($item['PROPERTY_DELIVERY_VALUE'] as $id)
-				{
-					$code = Delivery::getCodeById($id);
-					$price = $deliveryPrice[$code];
-					$delivery[$code] = $price;
-				}
-
+				$payment = $item['PROPERTY_PAYMENT_VALUE'];
+				sort($payment);
+				$delivery = $item['PROPERTY_DELIVERY_VALUE'];
+				sort($delivery);
 				$return = array(
-					'id' => intval($item['ID']),
-					'name' => $item['NAME'],
-					'user' => User::publicProfile($item['PROPERTY_USER_VALUE']),
-					'section' => intval($item['PROPERTY_CATEGORY_VALUE']),
-					'brand' => intval($item['PROPERTY_BRAND_VALUE']),
-					'condition' => intval($item['PROPERTY_CONDITION_VALUE']),
-					'color' => intval($item['PROPERTY_COLOR_VALUE']),
-					'size' => intval($item['PROPERTY_SIZE_VALUE']),
-					'material' => $item['PROPERTY_MATERIAL_VALUE'],
-					'features' => $item['PROPERTY_FEATURES_VALUE'],
-					'purchase' => intval($item['PROPERTY_PURCHASE_VALUE']),
-					'price' => intval($item['PROPERTY_PRICE_VALUE']),
-					'payment' => $payment,
-					'delivery' => $delivery,
-					'photo' => $photo,
+					'ID' => intval($item['ID']),
+					'NAME' => $item['NAME'],
+					'USER' => intval($item['PROPERTY_USER_VALUE']),
+					'CATEGORY' => intval($item['PROPERTY_CATEGORY_VALUE']),
+					'BRAND' => intval($item['PROPERTY_BRAND_VALUE']),
+					'GENDER' => intval($item['PROPERTY_GENDER_VALUE']),
+					'CONDITION' => intval($item['PROPERTY_CONDITION_VALUE']),
+					'COLOR' => intval($item['PROPERTY_COLOR_VALUE']),
+					'SIZE' => intval($item['PROPERTY_SIZE_VALUE']),
+					'MATERIAL' => $item['PROPERTY_MATERIAL_VALUE'],
+					'FEATURES' => $item['PROPERTY_FEATURES_VALUE'],
+					'PURCHASE' => intval($item['PROPERTY_PURCHASE_VALUE']),
+					'PRICE' => intval($item['PROPERTY_PRICE_VALUE']),
+					'PAYMENT' => $payment,
+					'DELIVERY' => $delivery,
+					'DELIVERY_PRICES' => $item['PROPERTY_DELIVERY_PRICES_VALUE'],
+					'PHOTO' => $item['PROPERTY_PHOTO_VALUE'],
+					'CAN_BUY' => intval($item['PROPERTY_CAN_BUY_ENUM_ID']) ? true : false,
 				);
 			}
 
@@ -251,20 +431,33 @@ class Ad
 		return $return;
 	}
 
-	public static function shortById($id)
+	/**
+	 * Возвращает массив объявления, в формате для отправки в приложение
+	 * @param $adId
+	 * @return array
+	 */
+	public static function shortById($adId)
 	{
-		$ad = self::getById($id);
+		$ad = self::getById($adId);
 		return array(
-			'id' => $ad['id'],
-			'name' => $ad['name'],
-			'user' => $ad['user'],
-			'size' => $ad['size'],
-			'purchase' => $ad['purchase'],
-			'price' => $ad['price'],
-			'photo' => array_shift($ad['photo']),
+			'id' => $ad['ID'],
+			'name' => $ad['NAME'],
+			'user' => User::publicProfile($ad['USER']),
+			'color' => $ad['COLOR'],
+			'size' => Size::getById($ad['SIZE'])['NAME'],
+			'purchase' => $ad['PURCHASE'],
+			'price' => $ad['PRICE'],
+			'photo' => Utils::getFileArray(array_shift($ad['PHOTO'])),
+			'can_buy' => $ad['CAN_BUY'],
 		);
 	}
 
+	/**
+	 * Возвращает ID объявлений с учетом параметров (фильтрации и пагинации)
+	 * @param array $params
+	 * @param bool $refreshCache
+	 * @return array|mixed
+	 */
 	public static function getIds($params = array(), $refreshCache = false)
 	{
 		$return = array();
@@ -311,6 +504,19 @@ class Ad
 			}
 			sort($filter);
 			$elementsFilter['=PROPERTY_BRAND'] = $filter;
+		}
+		if ($params['gender'])
+		{
+			$filter = array();
+			foreach ($params['gender'] as $item)
+			{
+				$gender = Gender::getByCode($item);
+				$id = $gender['ID'];
+				if ($id > 0)
+					$filter[$id] = $id;
+			}
+			sort($filter);
+			$elementsFilter['=PROPERTY_GENDER'] = $filter;
 		}
 		if ($params['condition'])
 		{
@@ -360,6 +566,10 @@ class Ad
 			sort($filter);
 			$elementsFilter['=PROPERTY_DELIVERY'] = $filter;
 		}
+		if ($params['can_buy'] == 'Y')
+			$elementsFilter['=PROPERTY_CAN_BUY'] = self::CAN_BUY_ID;
+		if ($params['exclude'])
+			$elementsFilter['!ID'] = $params['exclude'];
 
 		$extCache = new ExtCache(
 			array(
@@ -368,7 +578,8 @@ class Ad
 			    $count,
 			),
 			static::CACHE_PATH . __FUNCTION__ . '/',
-			7200
+			7200,
+			false
 		);
 		if(!$refreshCache && $extCache->initCache()) {
 			$return = $extCache->getVars();
@@ -377,6 +588,7 @@ class Ad
 
 			$iblockId = Utils::getIBlockIdByCode('ad');
 			$elementsFilter['IBLOCK_ID'] = $iblockId;
+			$elementsFilter['ACTIVE'] = 'Y';
 
 			$iblockElement = new \CIBlockElement();
 			$rsItems = $iblockElement->GetList(
@@ -400,14 +612,276 @@ class Ad
 		return $return;
 	}
 
-	public static function getList($params)
+	/**
+	 * Возвращает объявления с учетом параметров (фильтрации и пагинации)
+	 * @param array $params
+	 * @param bool $additional добавить данные по количеству комментариев и избранного
+	 * @return array
+	 */
+	public static function getList($params = array(), $additional = false)
 	{
 		$return = array();
 
-		$ids = self::getIds($params, true);
+		$userId = Auth::getCurrentUserId();
+
+		$ids = self::getIds($params);
 		foreach ($ids as $id)
-			$return[] = self::shortById($id);
+		{
+			$ad = self::shortById($id);
+			if ($additional)
+			{
+				$ad['additional'] = array(
+					'comments' => Comments::getCountByAd($id),
+					'favorites' => Favorite::getCountByAd($id),
+				);
+				if ($userId)
+					$ad['additional']['my_favorite'] = Favorite::check($userId, $id);
+			}
+			$return[] = $ad;
+		}
 
 		return $return;
+	}
+
+	/**
+	 * Возвращает только активные объявления указанного пользователя
+	 * @param $userId
+	 * @param array $params
+	 * @param bool $additional
+	 * @return array
+	 */
+	public static function getListByUser($userId, $params = array(), $additional = false)
+	{
+		$params['user'] = array($userId);
+		$params['can_buy'] = 'Y';
+		return self::getList($params, $additional);
+	}
+
+	/**
+	 * Добавляет комментарий к объявлению
+	 * @param $adId
+	 * @param $message
+	 * @return array
+	 * @throws ApiException
+	 */
+	public static function comment($adId, $message)
+	{
+		// Проверяем авторизацию (выкинет исключение, если неавторизован)
+		$session = Auth::check();
+		$userId = $session['USER_ID'];
+
+		if (!$adId)
+			throw new ApiException(['wrong_ad'], 400);
+
+		$ad = self::getById($adId);
+		if (!$ad)
+			throw new ApiException(['ad_not_found'], 400);
+
+		$message = htmlspecialchars(trim($message));
+		if (!$message)
+			throw new ApiException(['empty_message'], 400);
+
+		$id = Comments::add($adId, $userId, $message);
+
+		return array(
+			'id' => $id,
+		);
+	}
+
+	/**
+	 * Возвращает комментарии объявления
+	 * @param $adId
+	 * @param array $params
+	 * @return array
+	 * @throws ApiException
+	 */
+	public static function comments($adId, $params = array())
+	{
+		if (!$adId)
+			throw new ApiException(['wrong_ad'], 400);
+
+		$ad = self::getById($adId);
+		if (!$ad)
+			throw new ApiException(['ad_not_found'], 400);
+
+		$return = array();
+		$comments = Comments::getByAd($adId, $params);
+		foreach ($comments as $comment)
+		{
+			$return[] = array(
+				'id' => $comment['ID'],
+				'message' => $comment['MESSAGE'],
+			    'user' => User::publicProfile($comment['USER']),
+			);
+		}
+
+		return $return;
+	}
+
+	/**
+	 * Объявление детально
+	 * @param $adId
+	 * @return array
+	 * @throws ApiException
+	 */
+	public static function detail($adId)
+	{
+		if (!$adId)
+			throw new ApiException(['wrong_ad'], 400);
+
+		$ad = self::getById($adId);
+		if (!$ad)
+			throw new ApiException(['ad_not_found'], 400);
+
+		$photo = array();
+		foreach ($ad['PHOTO'] as $id)
+			$photo[] = Utils::getFileArray($id);
+
+		$add = array(
+			'comments' => Comments::getCountByAd($adId),
+			'favorites' => Favorite::getCountByAd($adId),
+		);
+		$userId = Auth::getCurrentUserId();
+		if ($userId)
+			$add['my_favorite'] = Favorite::check($userId, $adId);
+
+		$return = array(
+			'id' => intval($ad['ID']),
+			'name' => $ad['NAME'],
+			'user' => User::publicProfile($ad['USER']),
+			'section' => $ad['CATEGORY'],
+			'brand' => $ad['BRAND'],
+			'gender' => Gender::getCodeById($ad['GENDER']),
+			'condition' => $ad['CONDITION'],
+			'color' => $ad['COLOR'],
+			'size' => Size::getById($ad['SIZE'])['NAME'],
+			'material' => $ad['MATERIAL'],
+			'features' => $ad['FEATURES'],
+			'purchase' => $ad['PURCHASE'],
+			'price' => $ad['PRICE'],
+			'payment' => Payment::format($ad['PAYMENT']),
+			'delivery' => Delivery::format($ad['DELIVERY'], $ad['DELIVERY_PRICES']),
+			'photo' => $photo,
+			'can_buy' => $ad['CAN_BUY'],
+		    'comments' => self::comments($adId),
+		    'similar' => self::getList(array(
+			    'section' => $ad['CATEGORY'],
+			    'exclude' => $adId,
+		    )),
+		    'additional' => $add,
+		);
+
+		return $return;
+	}
+
+	/**
+	 * Возвращает количество объявлений у пользователя
+	 * @param $userId
+	 * @param bool $refreshCache
+	 * @return int|mixed
+	 */
+	public static function getCountByUser($userId, $refreshCache = false)
+	{
+		$userId = intval($userId);
+
+		$extCache = new ExtCache(
+			array(
+				__FUNCTION__,
+				$userId,
+			),
+			static::CACHE_PATH . __FUNCTION__ . '/',
+			7200,
+			false
+		);
+		if(!$refreshCache && $extCache->initCache()) {
+			$return = $extCache->getVars();
+		} else {
+			$extCache->startDataCache();
+
+			$iblockId = Utils::getIBlockIdByCode('ads');
+			$iblockElement = new \CIBlockElement();
+			$count = $iblockElement->GetList(
+				array(),
+				array(
+					'IBLOCK_ID' => $iblockId,
+					'=PROPERTY_USER' => $userId,
+				),
+				array(),
+				false
+			);
+			$return = intval($count);
+
+			$extCache->endDataCache($return);
+		}
+
+		return $return;
+	}
+
+	/**
+	 * Поделиться объявлением в приложении
+	 * @param $adId
+	 * @return array
+	 * @throws ApiException
+	 */
+	public static function share($adId)
+	{
+		// Проверяем авторизацию (выкинет исключение, если неавторизован)
+		$session = Auth::check();
+		$userId = $session['USER_ID'];
+
+		if (!$adId)
+			throw new ApiException(['wrong_ad'], 400);
+
+		$ad = self::getById($adId);
+		if (!$ad)
+			throw new ApiException(['ad_not_found'], 400);
+
+		if ($ad['USER'] == $userId)
+			throw new ApiException(['self_ad'], 400);
+
+		$id = Feed::addShare($adId, $userId, $ad['name']);
+
+		if ($id)
+			News::share('app', $userId, $adId);
+
+		return array(
+			'id' => $id,
+		);
+	}
+
+	/**
+	 * Поделиться объявлением в социальной сети
+	 * @param $adId
+	 * @param $name
+	 * @return array
+	 * @throws ApiException
+	 */
+	public static function socialShare($adId, $name)
+	{
+		// Проверяем авторизацию (выкинет исключение, если неавторизован)
+		$session = Auth::check();
+		$userId = $session['USER_ID'];
+
+		if (!$adId)
+			throw new ApiException(['wrong_ad'], 400);
+
+		$ad = self::getById($adId);
+		if (!$ad)
+			throw new ApiException(['ad_not_found'], 400);
+
+		$id = News::share($name, $userId, $adId);
+
+		return array(
+			'id' => $id,
+		);
+	}
+
+	/**
+	 * Очищает кеш списка объявлений
+	 */
+	private static function clearListCache()
+	{
+		$phpCache = new \CPHPCache();
+		$phpCache->CleanDir(static::CACHE_PATH . 'getIds');
 	}
 }
