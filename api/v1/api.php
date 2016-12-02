@@ -2,7 +2,7 @@
 use Local\Api\v1;
 use Local\Api\ApiException;
 
-include_once $_SERVER['DOCUMENT_ROOT'] . 'api/bxinit.php';
+include_once $_SERVER['DOCUMENT_ROOT'] . '/api/bxinit.php';
 
 try
 {
