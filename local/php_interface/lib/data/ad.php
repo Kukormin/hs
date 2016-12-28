@@ -135,7 +135,7 @@ class Ad
 		$deliveryIds = array();
 		$deliveryError = false;
 		$deliveryPersonal = false; // присутствует ли в доставках личная встреча
-		foreach ($params['delivery'] as $code => $p)
+		foreach ($params['delivery'] as $code)
 		{
 			$arDelivery = Delivery::getByCode($code);
 			if ($arDelivery)
@@ -151,7 +151,6 @@ class Ad
 		if ($deliveryError || !$deliveryIds)
 			$errors[] = 'wrong_delivery';
 		$props['DELIVERY'] = $deliveryIds;
-		$props['DELIVERY_PRICES'] = json_encode($params['delivery']);
 
 		// Если оплата только по договоренности и доставка не содержит личную встречу
 		if ($paymentAgreement && count($paymentIds) == 1 && !$deliveryPersonal)
