@@ -43,7 +43,7 @@ class Catalog
 			$rsSections = $iblockSection->GetList(array('LEFT_MARGIN' => 'ASC', 'SORT' => 'ASC'), array(
 				'IBLOCK_ID' => $iblockId,
 			), false, array(
-				'UF_SIZE'
+				'UF_SIZE', 'UF_WEIGHT',
 			));
 			while ($section = $rsSections->Fetch())
 			{
@@ -56,8 +56,35 @@ class Catalog
 					'ACTIVE' => $section['ACTIVE'],
 					'PARENT' => $parent,
 				    'SIZE' => $section['UF_SIZE'],
+				    'WEIGHT' => $section['UF_WEIGHT'],
 				);
 			}
+
+			foreach ($return as &$item)
+			{
+				if ($item['SIZE'])
+					$item['H_SIZE'] = $item['SIZE'];
+				else
+				{
+					$parent = $return[$item['PARENT']];
+					if ($parent)
+						$item['H_SIZE'] = $parent['H_SIZE'];
+					else
+						$item['H_SIZE'] = 0;
+				}
+
+				if ($item['WEIGHT'])
+					$item['H_WEIGHT'] = $item['WEIGHT'];
+				else
+				{
+					$parent = $return[$item['PARENT']];
+					if ($parent)
+						$item['H_WEIGHT'] = $parent['H_WEIGHT'];
+					else
+						$item['H_WEIGHT'] = 0;
+				}
+			}
+			unset($item);
 
 			$extCache->endDataCache($return);
 		}
@@ -80,6 +107,8 @@ class Catalog
 					'name' => $item['NAME'],
 					'full' => $item['FULL'],
 					'parent' => $item['PARENT'],
+				    'size' => $item['H_SIZE'],
+				    'weight' => $item['H_WEIGHT'],
 				);
 
 		return $return;

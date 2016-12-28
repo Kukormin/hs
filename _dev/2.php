@@ -11,7 +11,7 @@ require $_SERVER['DOCUMENT_ROOT'].'/bitrix/header.php';
 ));
 debugmessage($res);*/
 
-$userId = 54;
+/*$userId = 54;
 $follow = \Local\User\Follower::get($userId);
 
 $res = \Local\Data\Feed::getList(array(
@@ -19,7 +19,9 @@ $res = \Local\Data\Feed::getList(array(
 	//'count' => 3,
 	'publishers' => $follow['publishers'],
 ), true);
-debugmessage($res);
+debugmessage($res);*/
+
+$sect = \Local\Catalog\Catalog::getAllSections(true);
 
 
 require $_SERVER['DOCUMENT_ROOT'].'/bitrix/footer.php';

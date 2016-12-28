@@ -277,6 +277,9 @@ class User
 		if (!$nickname)
 			throw new ApiException(['wrong_nickname'], 400);
 
+		if (strpos($nickname, ' ') !== false)
+			throw new ApiException(['space'], 400);
+
 		$id = self::getIdByNickName($nickname);
 		return array(
 			'used' => $id ? 1 : 0,
@@ -304,6 +307,9 @@ class User
 		if ($data['nickname'] && $profile['nickname'] != $data['nickname'])
 		{
 			$nickname = htmlspecialchars(trim($data['nickname']));
+			if (strpos($nickname, ' ') !== false)
+				throw new ApiException(['space'], 400);
+
 			$id = self::getIdByNickName($nickname);
 			if ($id == 0)
 				$fields['CODE'] = $nickname;
