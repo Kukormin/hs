@@ -6,7 +6,8 @@
 </head>
 <body>
 <p>
-	<input id="url" type="text" value="http://<?= $_SERVER['SERVER_NAME'] ?>/api/v1" size="80" />
+	<input id="url" type="text"
+	       value="http<?= $_SERVER['HTTPS'] ? 's' : '' ?>://<?= $_SERVER['SERVER_NAME'] ?>/api/v1" size="80" />
 	<input id="test_all" type="button" value="Запустить все запросы"/>
 </p>
 <p>
@@ -57,8 +58,7 @@
 	?></table><?
 
 ?>
-<script type="text/javascript" charset="utf-8" src="http://code.jquery.com/jquery-2.1.0.min.js"></script><?
-?>
+<script type="text/javascript" charset="utf-8" src="/_dev/test/jquery-2.1.0.min.js"></script>
 <script type="text/javascript" charset="utf-8" src="scripts.js"></script><?
 
 ?></body><?

@@ -141,6 +141,16 @@ class Auth
 		);
 	}
 
+	private static function getAuthToken()
+	{
+		$headers = getallheaders();
+		$authToken = $headers['x-auth'];
+		if (!$authToken)
+			$authToken = $headers['X-Auth'];
+
+		return $authToken;
+	}
+
 	/**
 	 * Проверка авторизации
 	 * @return array|mixed
@@ -148,8 +158,7 @@ class Auth
 	 */
 	public static function check()
 	{
-		$headers = getallheaders();
-		$authToken = $headers['x-auth'];
+		$authToken = self::getAuthToken();
 		if (!$authToken)
 			throw new ApiException(['not_authorized'], 401);
 
@@ -168,8 +177,7 @@ class Auth
 	{
 		$userId = 0;
 
-		$headers = getallheaders();
-		$authToken = $headers['x-auth'];
+		$authToken = self::getAuthToken();
 		if ($authToken)
 		{
 			$session = Session::getByToken($authToken);
