@@ -51,10 +51,6 @@ class Ad
 		$errors = array();
 		$props = array();
 
-		$props['NAME'] = htmlspecialchars(trim($params['name']));
-		if (!$props['NAME'])
-			$errors[] = 'empty_name';
-
 		// Раздел каталога
 		$props['CATEGORY'] = intval($params['section']);
 		$section = Catalog::getSectionById($props['CATEGORY']);
@@ -62,12 +58,15 @@ class Ad
 			$errors[] = 'wrong_section';
 
 		// Бренд
+		$brandName = '';
 		if ($params['brand'])
 		{
 			$props['BRAND'] = intval($params['brand']);
 			$brand = Brand::getById($props['BRAND']);
 			if (!$brand || $brand['ACTIVE'] != 'Y')
 				$errors[] = 'wrong_brand';
+			else
+				$brandName = ' ' . $brand['NAME'];
 		}
 
 		// Половой признак
@@ -170,6 +169,7 @@ class Ad
 		if ($errors)
 			throw new ApiException($errors, 400);
 
+		$props['NAME'] = $section['NAME'] . ' ' . $brandName;
 		$props['CAN_BUY'] = self::CAN_BUY_ID;
 
 		return $props;
