@@ -744,8 +744,8 @@ class User
 			if (!in_array($payment, Payment::format($ad['PAYMENT'])))
 				throw new ApiException(['wrong_payment'], 400);
 
-			$deliveries = Delivery::format($ad['DELIVERY'], $ad['DELIVERY_PRICES']);
-			if (!isset($deliveries[$delivery]))
+			$deliveries = Delivery::format($ad['DELIVERY']);
+			if (!in_array($delivery, $deliveries))
 				throw new ApiException(['wrong_delivery'], 400);
 
 			if ($deliveryPrice < $deliveries[$delivery])

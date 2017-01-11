@@ -109,18 +109,14 @@ class Delivery
 	/**
 	 * Форматирует массив доставок
 	 * @param $ar
-	 * @param $prices
 	 * @return array
 	 */
-	public static function format($ar, $prices) {
+	public static function format($ar) {
 		$return = array();
-		$prices = json_decode($prices, true);
 		foreach ($ar as $id)
 		{
 			$code = self::getCodeById($id);
-			$price = $prices[$code];
-			if ($code)
-				$return[$code] = $price;
+			$return[] = $code;
 		}
 		return $return;
 	}

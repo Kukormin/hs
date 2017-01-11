@@ -759,7 +759,7 @@ class Ad
 			'purchase' => $ad['PURCHASE'],
 			'price' => $ad['PRICE'],
 			'payment' => Payment::format($ad['PAYMENT']),
-			'delivery' => Delivery::format($ad['DELIVERY'], $ad['DELIVERY_PRICES']),
+			'delivery' => Delivery::format($ad['DELIVERY']),
 			'photo' => $photo,
 			'can_buy' => $ad['CAN_BUY'],
 		    'comments' => self::comments($adId),
