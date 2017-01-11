@@ -51,6 +51,10 @@ class Ad
 		$errors = array();
 		$props = array();
 
+		$props['NAME'] = htmlspecialchars(trim($params['name']));
+		if (!$props['NAME'])
+			$errors[] = 'empty_name';
+
 		// Раздел каталога
 		$props['CATEGORY'] = intval($params['section']);
 		$section = Catalog::getSectionById($props['CATEGORY']);
@@ -58,10 +62,13 @@ class Ad
 			$errors[] = 'wrong_section';
 
 		// Бренд
-		$props['BRAND'] = intval($params['brand']);
-		$brand = Brand::getById($props['BRAND']);
-		if (!$brand || $brand['ACTIVE'] != 'Y')
-			$errors[] = 'wrong_brand';
+		if ($params['brand'])
+		{
+			$props['BRAND'] = intval($params['brand']);
+			$brand = Brand::getById($props['BRAND']);
+			if (!$brand || $brand['ACTIVE'] != 'Y')
+				$errors[] = 'wrong_brand';
+		}
 
 		// Половой признак
 		if ($params['gender'])
@@ -80,10 +87,13 @@ class Ad
 			$errors[] = 'wrong_condition';
 
 		// Цвет
-		$props['COLOR'] = intval($params['color']);
-		$color = Color::getById($props['COLOR']);
-		if (!$color || $color['ACTIVE'] != 'Y')
-			$errors[] = 'wrong_color';
+		if ($params['color'])
+		{
+			$props['COLOR'] = intval($params['color']);
+			$color = Color::getById($props['COLOR']);
+			if (!$color || $color['ACTIVE'] != 'Y')
+				$errors[] = 'wrong_color';
+		}
 
 		// Размер
 		$props['SIZE'] = intval($params['size']);
@@ -160,7 +170,6 @@ class Ad
 		if ($errors)
 			throw new ApiException($errors, 400);
 
-		$props['NAME'] = $section['NAME'] . ' ' . $brand['NAME'];
 		$props['CAN_BUY'] = self::CAN_BUY_ID;
 
 		return $props;
