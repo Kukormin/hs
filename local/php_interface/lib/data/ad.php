@@ -414,7 +414,7 @@ class Ad
 				$return = array(
 					'ID' => intval($item['ID']),
 					'NAME' => $item['NAME'],
-					'DATE_CREATE' => $item['DATE_CREATE'],
+					'DATE_CREATE' => date('c', MakeTimeStamp($item['DATE_CREATE'])),
 					'USER' => intval($item['PROPERTY_USER_VALUE']),
 					'CATEGORY' => intval($item['PROPERTY_CATEGORY_VALUE']),
 					'BRAND' => intval($item['PROPERTY_BRAND_VALUE']),
