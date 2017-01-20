@@ -387,7 +387,7 @@ class Ad
 				'ID' => $id,
 				'ACTIVE' => 'Y',
 			), false, false, array(
-				'ID', 'IBLOCK_ID', 'NAME',
+				'ID', 'IBLOCK_ID', 'NAME', 'DATE_CREATE',
 				'PROPERTY_USER',
 				'PROPERTY_CATEGORY',
 				'PROPERTY_BRAND',
@@ -414,6 +414,7 @@ class Ad
 				$return = array(
 					'ID' => intval($item['ID']),
 					'NAME' => $item['NAME'],
+					'DATE_CREATE' => $item['DATE_CREATE'],
 					'USER' => intval($item['PROPERTY_USER_VALUE']),
 					'CATEGORY' => intval($item['PROPERTY_CATEGORY_VALUE']),
 					'BRAND' => intval($item['PROPERTY_BRAND_VALUE']),
@@ -450,6 +451,7 @@ class Ad
 		return array(
 			'id' => $ad['ID'],
 			'name' => $ad['NAME'],
+			'created' => $ad['DATE_CREATE'],
 			'user' => User::publicProfile($ad['USER']),
 			'color' => $ad['COLOR'],
 			'size' => Size::getById($ad['SIZE'])['NAME'],
@@ -756,6 +758,7 @@ class Ad
 		$return = array(
 			'id' => intval($ad['ID']),
 			'name' => $ad['NAME'],
+			'created' => $ad['DATE_CREATE'],
 			'user' => User::publicProfile($ad['USER']),
 			'section' => $ad['CATEGORY'],
 			'brand' => $ad['BRAND'],
