@@ -55,8 +55,8 @@ class Catalog
 					'FULL' => $section['CODE'],
 					'ACTIVE' => $section['ACTIVE'],
 					'PARENT' => $parent,
-				    'SIZE' => $section['UF_SIZE'],
-				    'WEIGHT' => $section['UF_WEIGHT'],
+				    'SIZE' => intval($section['UF_SIZE']),
+				    'WEIGHT' => intval($section['UF_WEIGHT']),
 				);
 			}
 
