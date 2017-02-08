@@ -371,8 +371,8 @@ $address)
 		$return = array(
 			'id' => $deal['ID'],
 			'ads' => $ads,
-			'seller' => User::profile($deal['SELLER']),
-			'buyer' => User::profile($deal['BUYER']),
+			'seller' => User::publicProfile($deal['SELLER']),
+			'buyer' => User::publicProfile($deal['BUYER']),
 			'status' => $deal['STATUS'],
 			'payment' => Payment::getCodeById($deal['PAYMENT']),
 			'delivery' => Delivery::getCodeById($deal['DELIVERY']),
@@ -661,6 +661,7 @@ $address)
 				'id' => $message['ID'],
 				'message' => $message['MESSAGE'],
 			    'user' => $message['USER'],
+			    'date' => date('c', MakeTimeStamp($message['DATE'])),
 			);
 		}
 

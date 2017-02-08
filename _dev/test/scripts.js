@@ -36,6 +36,14 @@ $(document).ready(function() {
 			processData = false;
 		}
 
+		if (sType == 'GET' && sData && sData.substr(0, 1) == '/') {
+			sUri = sData;
+			formData = '';
+		}
+
+		console.log(sHost);
+		console.log(sUri);
+
 		$.ajax({
 			url: sHost + sUri,
 			type: sType,
