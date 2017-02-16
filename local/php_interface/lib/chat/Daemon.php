@@ -511,7 +511,7 @@ class Daemon
 	    catch (\Exception $e)
 	    {
 		    $message = json_encode(Array(
-			    'errors' => ['unknown_error'],
+			    'errors' => array('unknown_error'),
 			    'code' => $e->getCode(),
 			    'message' => $e->getMessage(),
 		    ), JSON_UNESCAPED_UNICODE);
