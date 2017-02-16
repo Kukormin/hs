@@ -1052,15 +1052,19 @@ class User
 
 	/**
 	 * Добавляет сообщение в чат со службой поддержки
+	 * @param $userId
 	 * @param $message
 	 * @return array
 	 * @throws ApiException
 	 */
-	public static function message($message)
+	public static function message($userId, $message)
 	{
 		// Проверяем авторизацию (выкинет исключение, если неавторизован)
-		$session = Auth::check();
-		$userId = $session['USER_ID'];
+		if (!$userId)
+		{
+			$session = Auth::check();
+			$userId = $session['USER_ID'];
+		}
 
 		$message = htmlspecialchars(trim($message));
 		if (!$message)

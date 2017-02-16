@@ -84,6 +84,10 @@ $address)
 		if (!$id)
 			throw new ApiException(['deal_add_error'], 500, $iblockElement->LAST_ERROR);
 
+		// Всем объявлениям устанавливаем can_buy = false
+		foreach ($adIds as $adId)
+			Ad::updateCanBuy($adId, false);
+
 		// сбрасываем кеш
 		self::clearUserCache($userId);
 		self::clearUserCache($sellerId);
@@ -311,6 +315,7 @@ $address)
 				array(
 					'ID',
 					'NAME',
+					'DETAIL_TEXT',
 					'PROPERTY_AD',
 					'PROPERTY_SELLER',
 					'PROPERTY_BUYER',
@@ -344,6 +349,8 @@ $address)
 				    'BUYER_RATING' => intval($item['PROPERTY_BUYER_RATING_VALUE']),
 				    'SELLER_RATING' => intval($item['PROPERTY_SELLER_RATING_VALUE']),
 				    'TRACK' => $item['PROPERTY_TRACK_VALUE'],
+				    'DETAIL_TEXT' => $item['DETAIL_TEXT'],
+				    'HISTORY' => json_decode($item['DETAIL_TEXT']),
 				);
 				$return['ALLOWED'] = self::getAllowedUpdates($return);
 			}
@@ -570,17 +577,21 @@ $address)
 
 	/**
 	 * Добавляет сообщение в чат сделки
+	 * @param $userId
 	 * @param $dealId
 	 * @param $message
 	 * @param $support bool true - сообщение в службу поддержки
 	 * @return array
 	 * @throws ApiException
 	 */
-	public static function message($dealId, $message, $support)
+	public static function message($userId, $dealId, $message, $support)
 	{
 		// Проверяем авторизацию (выкинет исключение, если неавторизован)
-		$session = Auth::check();
-		$userId = $session['USER_ID'];
+		if (!$userId)
+		{
+			$session = Auth::check();
+			$userId = $session['USER_ID'];
+		}
 
 		if (!$dealId)
 			throw new ApiException(['wrong_deal'], 400);
@@ -590,10 +601,17 @@ $address)
 			throw new ApiException(['deal_not_found'], 400);
 
 		$role = 0;
+		$pushUser = 0;
 		if ($userId == $deal['SELLER'])
+		{
 			$role = 1; // продавец
+			$pushUser = $deal['BUYER'];
+		}
 		elseif ($userId == $deal['BUYER'])
+		{
 			$role = 2; // покупатель
+			$pushUser = $deal['SELLER'];
+		}
 
 		if (!$role)
 			throw new ApiException(['not_your_deal'], 400);
@@ -605,12 +623,13 @@ $address)
 		if ($support)
 			self::updateChatInfo($dealId);
 
-		$suffix = $support ? $role : 0;
+		$suffix = $support ? 0 : $role;
 		$key = 'd' . '|' . $dealId . '|' . $suffix;
 		$id = Messages::add($key, $userId, $message);
 
 		return array(
 			'id' => $id,
+		    'push' => $support ? 0 : $pushUser,
 		);
 	}
 

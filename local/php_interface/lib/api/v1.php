@@ -80,7 +80,7 @@ class v1 extends Api
 		elseif ($method == 'myads')
 			return User::getMyAds($args[1], $this->request);
 		elseif ($method == 'support')
-			return User::message($this->post['message']);
+			return User::message(0, $this->post['message']);
 		elseif ($method == 'supportchat')
 			return User::chat($this->request);
 		else
@@ -172,9 +172,9 @@ class v1 extends Api
 		elseif ($method == 'detail')
 			return Deal::detail($args[1]);
 		elseif ($method == 'message')
-			return Deal::message($this->post['deal'], $this->post['message'], false);
+			return Deal::message(0, $this->post['deal'], $this->post['message'], false);
 		elseif ($method == 'support')
-			return Deal::message($this->post['deal'], $this->post['message'], true);
+			return Deal::message(0, $this->post['deal'], $this->post['message'], true);
 		elseif ($method == 'chat')
 			return Deal::chat($args[1], false, $this->request);
 		elseif ($method == 'supportchat')

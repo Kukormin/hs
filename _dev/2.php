@@ -21,7 +21,8 @@ $res = \Local\Data\Feed::getList(array(
 ), true);
 debugmessage($res);*/
 
-$sect = \Local\Catalog\Catalog::getAllSections(true);
+$deal['history'] = \Local\Data\History::get(1364, true);
+debugmessage($deal['history']);
 
 
 require $_SERVER['DOCUMENT_ROOT'].'/bitrix/footer.php';
