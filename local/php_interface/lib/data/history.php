@@ -61,7 +61,7 @@ class History
 			$rsItems = $query->exec();
 			while ($item = $rsItems->Fetch())
 				$return[] = array(
-					'status' => intval($item['UF_TO']),
+					'status' => status::getCodeById($item['UF_TO']),
 					'date' => date('c', $item['UF_DATE']),
 					'user' => intval($item['UF_USER']),
 				);
