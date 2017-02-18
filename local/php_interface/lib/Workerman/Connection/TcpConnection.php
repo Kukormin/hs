@@ -282,12 +282,12 @@ class TcpConnection extends ConnectionInterface
         if ($this->_sendBuffer === '') {
             $len = @fwrite($this->_socket, $send_buffer);
             // send successful.
-            if ($len === strlen($send_buffer)) {
+            if ($len === iconv_strlen($send_buffer)) {
                 return true;
             }
             // Send only part of the data.
             if ($len > 0) {
-                $this->_sendBuffer = substr($send_buffer, $len);
+                $this->_sendBuffer = iconv_substr($send_buffer, $len);
             } else {
                 // Connection closed?
                 if (!is_resource($this->_socket) || feof($this->_socket)) {
@@ -431,7 +431,7 @@ class TcpConnection extends ConnectionInterface
                 // The current packet length is known.
                 if ($this->_currentPackageLength) {
                     // Data is not enough for a package.
-                    if ($this->_currentPackageLength > strlen($this->_recvBuffer)) {
+                    if ($this->_currentPackageLength > iconv_strlen($this->_recvBuffer)) {
                         break;
                     }
                 } else {
@@ -442,7 +442,7 @@ class TcpConnection extends ConnectionInterface
                         break;
                     } elseif ($this->_currentPackageLength > 0 && $this->_currentPackageLength <= self::$maxPackageSize) {
                         // Data is not enough for a package.
-                        if ($this->_currentPackageLength > strlen($this->_recvBuffer)) {
+                        if ($this->_currentPackageLength > iconv_strlen($this->_recvBuffer)) {
                             break;
                         }
                     } // Wrong package.
@@ -456,14 +456,14 @@ class TcpConnection extends ConnectionInterface
                 // The data is enough for a packet.
                 self::$statistics['total_request']++;
                 // The current packet length is equal to the length of the buffer.
-                if (strlen($this->_recvBuffer) === $this->_currentPackageLength) {
+                if (iconv_strlen($this->_recvBuffer) === $this->_currentPackageLength) {
                     $one_request_buffer = $this->_recvBuffer;
                     $this->_recvBuffer  = '';
                 } else {
                     // Get a full package from the buffer.
-                    $one_request_buffer = substr($this->_recvBuffer, 0, $this->_currentPackageLength);
+                    $one_request_buffer = iconv_substr($this->_recvBuffer, 0, $this->_currentPackageLength);
                     // Remove the current package from the receive buffer.
-                    $this->_recvBuffer = substr($this->_recvBuffer, $this->_currentPackageLength);
+                    $this->_recvBuffer = iconv_substr($this->_recvBuffer, $this->_currentPackageLength);
                 }
                 // Reset the current packet length to 0.
                 $this->_currentPackageLength = 0;
@@ -515,7 +515,7 @@ class TcpConnection extends ConnectionInterface
     public function baseWrite()
     {
         $len = @fwrite($this->_socket, $this->_sendBuffer);
-        if ($len === strlen($this->_sendBuffer)) {
+        if ($len === iconv_strlen($this->_sendBuffer)) {
             Worker::$globalEvent->del($this->_socket, EventInterface::EV_WRITE);
             $this->_sendBuffer = '';
             // Try to emit onBufferDrain callback when the send buffer becomes empty. 
@@ -536,7 +536,7 @@ class TcpConnection extends ConnectionInterface
             return true;
         }
         if ($len > 0) {
-            $this->_sendBuffer = substr($this->_sendBuffer, $len);
+            $this->_sendBuffer = iconv_substr($this->_sendBuffer, $len);
         } else {
             self::$statistics['send_fail']++;
             $this->destroy();
@@ -574,7 +574,7 @@ class TcpConnection extends ConnectionInterface
      */
     public function consumeRecvBuffer($length)
     {
-        $this->_recvBuffer = substr($this->_recvBuffer, $length);
+        $this->_recvBuffer = iconv_substr($this->_recvBuffer, $length);
     }
 
     /**
@@ -616,7 +616,7 @@ class TcpConnection extends ConnectionInterface
      */
     protected function checkBufferWillFull()
     {
-        if ($this->maxSendBufferSize <= strlen($this->_sendBuffer)) {
+        if ($this->maxSendBufferSize <= iconv_strlen($this->_sendBuffer)) {
             if ($this->onBufferFull) {
                 try {
                     call_user_func($this->onBufferFull, $this);
@@ -639,7 +639,7 @@ class TcpConnection extends ConnectionInterface
     protected function bufferIsFull()
     {
         // Buffer has been marked as full but still has data to send then the packet is discarded.
-        if ($this->maxSendBufferSize <= strlen($this->_sendBuffer)) {
+        if ($this->maxSendBufferSize <= iconv_strlen($this->_sendBuffer)) {
             if ($this->onError) {
                 try {
                     call_user_func($this->onError, $this, WORKERMAN_SEND_FAIL, 'send buffer full and drop package');

@@ -140,7 +140,19 @@ if ($DETAIL)
 		textarea {
 			width: 100%;
 		}
-	</style><?
+		#ws_status {
+			display: inline-block;
+			width: 10px;
+			height: 10px;
+			border-radius: 5px;
+			background: red;
+			margin-bottom: 5px;
+		}
+		#ws_status.connected {
+			background: #01B10E;
+		}
+	</style>
+	<div id="ws_status"></div><?
 
 	$tabControl->Begin();
 
@@ -149,7 +161,7 @@ if ($DETAIL)
 		$tabControl->BeginNextTab();
 
 		?>
-		<form method="POST"><?
+		<form class="chat_form" method="POST"><?
 			echo bitrix_sessid_post();
 			?>
 			<input type="hidden" name="KEY" value="<?= $key ?>"/>
@@ -168,7 +180,7 @@ if ($DETAIL)
 					else
 					{
 						$class = 'support';
-						$userName = 'Служба поддрежки';
+						$userName = 'Служба поддержки';
 					}
 					?>
 					<dl class="<?= $class ?>">
@@ -395,6 +407,21 @@ else
 
 	require($_SERVER["DOCUMENT_ROOT"] . "/bitrix/modules/main/include/prolog_admin_after.php");
 
+	?>
+	<style>
+		#ws_status {
+			display: inline-block;
+			width: 10px;
+			height: 10px;
+			border-radius: 5px;
+			background: red;
+			margin-bottom: 5px;
+		}
+		#ws_status.connected {
+			background: #01B10E;
+		}
+	</style><?
+
 	//
 	// ВЫВОД ФИЛЬТРА
 	//
@@ -446,12 +473,16 @@ else
 			));
 		$oFilter->End();
 	?>
+		<div id="ws_status"></div>
 	</form><?
 
 	// выведем таблицу списка элементов
 	$lAdmin->DisplayList();
-
 }
+
+$assetInstance = \Bitrix\Main\Page\Asset::getInstance();
+$assetInstance->addJs('/admin/jquery.js');
+$assetInstance->addJs('/admin/chat.js');
 
 // завершение страницы
 require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/epilog_admin.php");

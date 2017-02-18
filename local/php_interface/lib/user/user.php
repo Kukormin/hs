@@ -1077,6 +1077,9 @@ class User
 
 		return array(
 			'id' => $id,
+		    'push' => 0,
+		    'role' => 1,
+		    'users' => array(0, $userId),
 		);
 	}
 

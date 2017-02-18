@@ -46,7 +46,7 @@ class Websocket implements \Workerman\Protocols\ProtocolInterface
     public static function input($buffer, ConnectionInterface $connection)
     {
         // Receive length.
-        $recv_len = strlen($buffer);
+        $recv_len = iconv_strlen($buffer);
         // We need more data.
         if ($recv_len < 2) {
             return 0;
@@ -121,7 +121,7 @@ class Websocket implements \Workerman\Protocols\ProtocolInterface
                         $head_len = $masked ? 6 : 2;
                         $connection->consumeRecvBuffer($head_len);
                         if ($recv_len > $head_len) {
-                            return static::input(substr($buffer, $head_len), $connection);
+                            return static::input(iconv_substr($buffer, $head_len), $connection);
                         }
                         return 0;
                     }
@@ -145,7 +145,7 @@ class Websocket implements \Workerman\Protocols\ProtocolInterface
                         $head_len = $masked ? 6 : 2;
                         $connection->consumeRecvBuffer($head_len);
                         if ($recv_len > $head_len) {
-                            return static::input(substr($buffer, $head_len), $connection);
+                            return static::input(iconv_substr($buffer, $head_len), $connection);
                         }
                         return 0;
                     }
@@ -178,7 +178,7 @@ class Websocket implements \Workerman\Protocols\ProtocolInterface
             }
             $current_frame_length = $head_len + $data_len;
 
-            $total_package_size = strlen($connection->websocketDataBuffer) + $current_frame_length;
+            $total_package_size = iconv_strlen($connection->websocketDataBuffer) + $current_frame_length;
             if ($total_package_size > TcpConnection::$maxPackageSize) {
                 echo "error package. package_length=$total_package_size\n";
                 $connection->close();
@@ -200,12 +200,12 @@ class Websocket implements \Workerman\Protocols\ProtocolInterface
             return 0;
         } // The length of the received data is greater than the length of a frame.
         elseif ($connection->websocketCurrentFrameLength < $recv_len) {
-            static::decode(substr($buffer, 0, $connection->websocketCurrentFrameLength), $connection);
+            static::decode(iconv_substr($buffer, 0, $connection->websocketCurrentFrameLength), $connection);
             $connection->consumeRecvBuffer($connection->websocketCurrentFrameLength);
             $current_frame_length                    = $connection->websocketCurrentFrameLength;
             $connection->websocketCurrentFrameLength = 0;
             // Continue to read next frame.
-            return static::input(substr($buffer, $current_frame_length), $connection);
+            return static::input(iconv_substr($buffer, $current_frame_length), $connection);
         } // The length of the received data is less than the length of a frame.
         else {
             return 0;
@@ -224,7 +224,7 @@ class Websocket implements \Workerman\Protocols\ProtocolInterface
         if (!is_scalar($buffer)) {
             throw new \Exception("You can't send(" . gettype($buffer) . ") to client, you need to convert it to a string. ");
         }
-        $len = strlen($buffer);
+        $len = iconv_strlen($buffer);
         if (empty($connection->websocketType)) {
             $connection->websocketType = static::BINARY_TYPE_BLOB;
         }
@@ -247,7 +247,7 @@ class Websocket implements \Workerman\Protocols\ProtocolInterface
                 $connection->tmpWebsocketData = '';
             }
             // If buffer has already full then discard the current package.
-            if (strlen($connection->tmpWebsocketData) > $connection->maxSendBufferSize) {
+            if (iconv_strlen($connection->tmpWebsocketData) > $connection->maxSendBufferSize) {
                 if ($connection->onError) {
                     try {
                         call_user_func($connection->onError, $connection, WORKERMAN_SEND_FAIL, 'send buffer full and drop package');
@@ -263,7 +263,7 @@ class Websocket implements \Workerman\Protocols\ProtocolInterface
             }
             $connection->tmpWebsocketData .= $encode_buffer;
             // Check buffer is full.
-            if ($connection->maxSendBufferSize <= strlen($connection->tmpWebsocketData)) {
+            if ($connection->maxSendBufferSize <= iconv_strlen($connection->tmpWebsocketData)) {
                 if ($connection->onBufferFull) {
                     try {
                         call_user_func($connection->onBufferFull, $connection);
@@ -296,18 +296,18 @@ class Websocket implements \Workerman\Protocols\ProtocolInterface
         $masks = $data = $decoded = null;
         $len = ord($buffer[1]) & 127;
         if ($len === 126) {
-            $masks = substr($buffer, 4, 4);
-            $data  = substr($buffer, 8);
+            $masks = iconv_substr($buffer, 4, 4);
+            $data  = iconv_substr($buffer, 8);
         } else {
             if ($len === 127) {
-                $masks = substr($buffer, 10, 4);
-                $data  = substr($buffer, 14);
+                $masks = iconv_substr($buffer, 10, 4);
+                $data  = iconv_substr($buffer, 14);
             } else {
-                $masks = substr($buffer, 2, 4);
-                $data  = substr($buffer, 6);
+                $masks = iconv_substr($buffer, 2, 4);
+                $data  = iconv_substr($buffer, 6);
             }
         }
-        for ($index = 0; $index < strlen($data); $index++) {
+        for ($index = 0; $index < iconv_strlen($data); $index++) {
             $decoded .= $data[$index] ^ $masks[$index % 4];
         }
         if ($connection->websocketCurrentFrameLength) {
@@ -332,9 +332,9 @@ class Websocket implements \Workerman\Protocols\ProtocolInterface
     protected static function dealHandshake($buffer, $connection)
     {
         // HTTP protocol.
-        if (0 === strpos($buffer, 'GET')) {
+        if (0 === iconv_strpos($buffer, 'GET')) {
             // Find \r\n\r\n.
-            $heder_end_pos = strpos($buffer, "\r\n\r\n");
+            $heder_end_pos = iconv_strpos($buffer, "\r\n\r\n");
             if (!$heder_end_pos) {
                 return 0;
             }
@@ -396,17 +396,17 @@ class Websocket implements \Workerman\Protocols\ProtocolInterface
                 if (!empty($_SESSION) && class_exists('\GatewayWorker\Lib\Context')) {
                     $connection->session = \GatewayWorker\Lib\Context::sessionEncode($_SESSION);
                 }
-                $_GET = $_SERVER = $_SESSION = $_COOKIE = array();
+                $_GET = $_SESSION = $_COOKIE = array();
             }
-            if (strlen($buffer) > $header_length) {
-                return static::input(substr($buffer, $header_length), $connection);
+            if (iconv_strlen($buffer) > $header_length) {
+                return static::input(iconv_substr($buffer, $header_length), $connection);
             } 
             return 0;
         } // Is flash policy-file-request.
-        elseif (0 === strpos($buffer, '<polic')) {
+        elseif (0 === iconv_strpos($buffer, '<polic')) {
             $policy_xml = '<?xml version="1.0"?><cross-domain-policy><site-control permitted-cross-domain-policies="all"/><allow-access-from domain="*" to-ports="*"/></cross-domain-policy>' . "\0";
             $connection->send($policy_xml, true);
-            $connection->consumeRecvBuffer(strlen($buffer));
+            $connection->consumeRecvBuffer(iconv_strlen($buffer));
             return 0;
         }
         // Bad websocket handshake request.
@@ -427,10 +427,6 @@ class Websocket implements \Workerman\Protocols\ProtocolInterface
         // Parse headers.
         list($http_header, ) = explode("\r\n\r\n", $buffer, 2);
         $header_data = explode("\r\n", $http_header);
-
-        if ($_SERVER) {
-            $_SERVER = array();
-        }
 
         list($_SERVER['REQUEST_METHOD'], $_SERVER['REQUEST_URI'], $_SERVER['SERVER_PROTOCOL']) = explode(' ',
             $header_data[0]);

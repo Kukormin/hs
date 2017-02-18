@@ -53,7 +53,7 @@ class Ws
         if ($connection->handshakeStep === 1) {
             return self::dealHandshake($buffer, $connection);
         }
-        $recv_len = strlen($buffer);
+        $recv_len = iconv_strlen($buffer);
         if ($recv_len < 2) {
             return 0;
         }
@@ -122,7 +122,7 @@ class Ws
                         $head_len = $masked ? 6 : 2;
                         $connection->consumeRecvBuffer($head_len);
                         if ($recv_len > $head_len) {
-                            return self::input(substr($buffer, $head_len), $connection);
+                            return self::input(iconv_substr($buffer, $head_len), $connection);
                         }
                         return 0;
                     }
@@ -146,7 +146,7 @@ class Ws
                         $head_len = $masked ? 6 : 2;
                         $connection->consumeRecvBuffer($head_len);
                         if ($recv_len > $head_len) {
-                            return self::input(substr($buffer, $head_len), $connection);
+                            return self::input(iconv_substr($buffer, $head_len), $connection);
                         }
                         return 0;
                     }
@@ -155,17 +155,18 @@ class Ws
                 default :
                     echo "error opcode $opcode and close websocket connection. Buffer:" . $buffer . "\n";
                     $connection->close();
+					flush();
                     return 0;
             }
             // Calculate packet length.
             if ($data_len === 126) {
-                if (strlen($buffer) < 6) {
+                if (iconv_strlen($buffer) < 6) {
                     return 0;
                 }
                 $pack = unpack('nn/ntotal_len', $buffer);
                 $current_frame_length = $pack['total_len'] + 4;
             } else if ($data_len === 127) {
-                if (strlen($buffer) < 10) {
+                if (iconv_strlen($buffer) < 10) {
                     return 0;
                 }
                 $arr = unpack('n/N2c', $buffer);
@@ -174,7 +175,7 @@ class Ws
                 $current_frame_length = $data_len + 2;
             }
 
-            $total_package_size = strlen($connection->websocketDataBuffer) + $current_frame_length;
+            $total_package_size = iconv_strlen($connection->websocketDataBuffer) + $current_frame_length;
             if ($total_package_size > TcpConnection::$maxPackageSize) {
                 echo "error package. package_length=$total_package_size\n";
                 $connection->close();
@@ -195,12 +196,12 @@ class Ws
             return 0;
         } // The length of the received data is greater than the length of a frame.
         elseif ($connection->websocketCurrentFrameLength < $recv_len) {
-            self::decode(substr($buffer, 0, $connection->websocketCurrentFrameLength), $connection);
+            self::decode(iconv_substr($buffer, 0, $connection->websocketCurrentFrameLength), $connection);
             $connection->consumeRecvBuffer($connection->websocketCurrentFrameLength);
             $current_frame_length                    = $connection->websocketCurrentFrameLength;
             $connection->websocketCurrentFrameLength = 0;
             // Continue to read next frame.
-            return self::input(substr($buffer, $current_frame_length), $connection);
+            return self::input(iconv_substr($buffer, $current_frame_length), $connection);
         } // The length of the received data is less than the length of a frame.
         else {
             return 0;
@@ -227,7 +228,7 @@ class Ws
         $mask_key = "\x00\x00\x00\x00";
 
         $pack = '';
-        $length = $length_flag = strlen($payload);
+        $length = $length_flag = iconv_strlen($payload);
         if (65535 < $length) {
             $pack   = pack('NN', ($length & 0xFFFFFFFF00000000) >> 32, $length & 0x00000000FFFFFFFF);
             $length_flag = 127;
@@ -246,7 +247,7 @@ class Ws
         }
         if ($connection->handshakeStep === 1) {
             // If buffer has already full then discard the current package.
-            if (strlen($connection->tmpWebsocketData) > $connection->maxSendBufferSize) {
+            if (iconv_strlen($connection->tmpWebsocketData) > $connection->maxSendBufferSize) {
                 if ($connection->onError) {
                     try {
                         call_user_func($connection->onError, $connection, WORKERMAN_SEND_FAIL, 'send buffer full and drop package');
@@ -262,7 +263,7 @@ class Ws
             }
             $connection->tmpWebsocketData = $connection->tmpWebsocketData . $frame;
             // Check buffer is full.
-            if ($connection->maxSendBufferSize <= strlen($connection->tmpWebsocketData)) {
+            if ($connection->maxSendBufferSize <= iconv_strlen($connection->tmpWebsocketData)) {
                 if ($connection->onBufferFull) {
                     try {
                         call_user_func($connection->onBufferFull, $connection);
@@ -294,25 +295,25 @@ class Ws
         $decoded_data = '';
         if ($masked === true) {
             if ($data_length === 126) {
-                $mask = substr($bytes, 4, 4);
-                $coded_data = substr($bytes, 8);
+                $mask = iconv_substr($bytes, 4, 4);
+                $coded_data = iconv_substr($bytes, 8);
             } else if ($data_length === 127) {
-                $mask = substr($bytes, 10, 4);
-                $coded_data = substr($bytes, 14);
+                $mask = iconv_substr($bytes, 10, 4);
+                $coded_data = iconv_substr($bytes, 14);
             } else {
-                $mask = substr($bytes, 2, 4);
-                $coded_data = substr($bytes, 6);
+                $mask = iconv_substr($bytes, 2, 4);
+                $coded_data = iconv_substr($bytes, 6);
             }
-            for ($i = 0; $i < strlen($coded_data); $i++) {
+            for ($i = 0; $i < iconv_strlen($coded_data); $i++) {
                 $decoded_data .= $coded_data[$i] ^ $mask[$i % 4];
             }
         } else {
             if ($data_length === 126) {
-                $decoded_data = substr($bytes, 4);
+                $decoded_data = iconv_substr($bytes, 4);
             } else if ($data_length === 127) {
-                $decoded_data = substr($bytes, 10);
+                $decoded_data = iconv_substr($bytes, 10);
             } else {
-                $decoded_data = substr($bytes, 2);
+                $decoded_data = iconv_substr($bytes, 2);
             }
         }
         if ($connection->websocketCurrentFrameLength) {

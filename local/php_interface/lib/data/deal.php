@@ -623,13 +623,15 @@ $address)
 		if ($support)
 			self::updateChatInfo($dealId);
 
-		$suffix = $support ? 0 : $role;
+		$suffix = !$support ? 0 : $role;
 		$key = 'd' . '|' . $dealId . '|' . $suffix;
 		$id = Messages::add($key, $userId, $message);
 
 		return array(
 			'id' => $id,
+			'role' => $suffix,
 		    'push' => $support ? 0 : $pushUser,
+		    'users' => array(0, $deal['SELLER'], $deal['BUYER']),
 		);
 	}
 

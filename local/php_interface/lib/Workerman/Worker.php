@@ -421,10 +421,10 @@ class Worker
      */
     public static function runAll()
     {
-        self::checkSapiEnv();
-        self::init();
-        self::parseCommand();
-        self::daemonize();
+	    self::checkSapiEnv();
+	    self::init();
+	    self::parseCommand();
+	    self::daemonize();
         self::initWorkers();
         self::installSignal();
         self::saveMasterPid();

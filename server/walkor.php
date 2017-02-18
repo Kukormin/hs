@@ -17,34 +17,202 @@ $lib = '/local/php_interface/lib/';
 		'Workerman\\Worker' => $lib . 'Workerman/Worker.php',
 		'Workerman\\Autoloader' => $lib . 'Workerman/Autoloader.php',
 		'Workerman\\Lib\\Timer' => $lib . 'Workerman/Lib/Timer.php',
+		'Local\\Chat\\SocketChat' => $lib . 'chat/Chat.php',
 	)
 );
 
+iconv_set_encoding("internal_encoding", "ISO-8859-1");
+iconv_set_encoding("output_encoding", "ISO-8859-1");
+iconv_set_encoding("input_encoding", "ISO-8859-1");
+
 use Workerman\Worker;
 
-// Create a Websocket server
 $ws_worker = new Worker("websocket://0.0.0.0:2346");
 
-// 4 processes
 $ws_worker->count = 4;
+//$ws_worker->transport = 'ssl';
+/*$ws_worker->onWorkerStart = function($ws_worker)
+{
+	$timer_id = Timer::add(3, function() {
+		global $ws_worker;
+		echo count($ws_worker->connections) . " ping\n";
+		foreach ($ws_worker->connections as $connection)
+		{
+			$connection->send(pack('H*', '8900'), true);
+		}
+	});
+};*/
 
 // Emitted when new connection come
 $ws_worker->onConnect = function($connection)
 {
-	echo "New connection\n";
+	$connection->onWebSocketConnect = function($connection, $buffer)
+	{
+		$userId = 0;
+		if ($_SERVER['REQUEST_URI'] != '/admin/')
+		{
+
+			$authToken = '';
+			if (isset($_SERVER['HTTP_X-AUTH']))
+				$authToken = $_SERVER['HTTP_X-AUTH'];
+
+			if ($authToken)
+			{
+				$session = \Local\User\Session::getByToken($authToken);
+				if ($session)
+					$userId = $session['USER_ID'];
+			}
+
+			if (strpos($_SERVER['HTTP_USER_AGENT'], 'AppleWebKit') !== false)
+				$userId = 2767;
+			else
+				$userId = 54;
+			$connection->send($userId);
+
+			if (!$userId)
+			{
+				$connection->send("401 Not Authorized");
+				$connection->close();
+				return false;
+			}
+		}
+
+		\Local\Chat\SocketChat::addConnection($userId, $connection);
+
+		return true;
+	};
 };
 
 // Emitted when data received
 $ws_worker->onMessage = function($connection, $data)
 {
-	// Send hello $data
-	$connection->send('hello ' . $data);
+	if (!strlen($data)) {
+		return false;
+	}
+
+	$userId = \Local\Chat\SocketChat::getUser($connection);
+
+	try
+	{
+		$params = json_decode($data, true);
+	}
+	catch (\Exception $e)
+	{
+		$message = json_encode(Array(
+			'errors' => array('json_decode_error'),
+			'code' => $e->getCode(),
+			'message' => $e->getMessage(),
+		), JSON_UNESCAPED_UNICODE);
+		$connection->send($message);
+		return false;
+	}
+
+	if (!$params['message'])
+		return false;
+
+	$return = array();
+	$message = '';
+	$now = time();
+
+	try
+	{
+		// {"chat":"deal","deal":1290,"message":"тест"}
+
+		//
+		// Оператор СП
+		//
+		if (!$userId)
+		{
+			$ar = explode('|', $params['key']);
+			$type = $ar[0];
+			$oid = $ar[1];
+			$return['id'] = \Local\Data\Messages::add($params['key'], 0, $params['message']);
+			$return['role'] = 0;
+			if ($type == 'u')
+			{
+				\Local\User\User::updateChatInfo($oid, true);
+				$params['chat'] = 'usersupport';
+				$return['users'] = array(0, $oid);
+			}
+			elseif ($type == 'd')
+			{
+				\Local\Data\Deal::updateChatInfo($oid, true);
+				$params['chat'] = $ar[2] ? 'dealsupport' : 'deal';
+				$deal = \Local\Data\Deal::getById($oid);
+				$return['users'] = array(0);
+				if ($ar[2] != 1)
+					$return['users'][] = $deal['SELLER'];
+				if ($ar[2] < 2)
+					$return['users'][] = $deal['BUYER'];
+			}
+			/*if ($updatestatus && $item['IBLOCK_ID'] == $dealsIblockId)
+			{
+				$status = \Local\Data\Status::getByCode($updatestatus);
+				$deal = \Local\Data\Deal::update($item['ID'], array('STATUS' => $status['ID']));
+				\Local\Data\History::add($item['ID'], $status['ID'], 0);
+				$activeTab = 'deal';
+			}*/
+		}
+		//
+		// Пользователи
+		//
+		else
+		{
+
+			if ($params['chat'] == 'deal')
+				$return = \Local\Data\Deal::message($userId, $params['deal'], $params['message'], false);
+			elseif ($params['chat'] == 'dealsupport')
+				$return = \Local\Data\Deal::message($userId, $params['deal'], $params['message'], true);
+			elseif ($params['chat'] == 'usersupport')
+				$return = \Local\User\User::message($userId, $params['message']);
+		}
+
+		foreach ($return['users'] as $uid)
+		{
+			$cons = \Local\Chat\SocketChat::getConnections($uid);
+
+			foreach ($cons as $con)
+			{
+				$con->send(json_encode(array(
+					'type' => 'new',
+					'id' => $return['id'],
+					'message' => $params['message'],
+					'datef' => ConvertTimeStamp($now, 'FULL'),
+					'date' => date('c', $now),
+					'chat' => $params['chat'],
+					'role' => $return['role'],
+					'user' => $userId,
+				), JSON_UNESCAPED_UNICODE));
+			}
+		}
+	}
+	catch (\Local\Api\ApiException $e)
+	{
+		$return = array(
+			'result' => null,
+			'errors' => $e->getErrors(),
+		);
+		if ($e->getMessage())
+			$return['message'] = $e->getMessage();
+		$message = json_encode($return, JSON_UNESCAPED_UNICODE);
+	}
+	catch (\Exception $e)
+	{
+		$message = json_encode(Array(
+			'errors' => array('unknown_error'),
+			'code' => $e->getCode(),
+			'message' => $e->getMessage(),
+		), JSON_UNESCAPED_UNICODE);
+	}
+
+	if ($message)
+		$connection->send($message);
 };
 
 // Emitted when connection closed
 $ws_worker->onClose = function($connection)
 {
-	echo "Connection closed\n";
+	\Local\Chat\SocketChat::closeConnection($connection);
 };
 
 // Run worker
