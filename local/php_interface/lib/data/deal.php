@@ -471,12 +471,6 @@ $address)
 		{
 			if ($status == 'new')
 			{
-				$return['status'][1]['confirm'] = true;
-				$return['status'][1]['cancel'] = true;
-				$return['status'][2]['cancel'] = true;
-			}
-			elseif ($status == 'confirm')
-			{
 				$return['status'][1]['send'] = true;
 				$return['status'][1]['cancel'] = true;
 				$return['status'][2]['cancel'] = true;
