@@ -53,8 +53,8 @@ $ws_worker->onConnect = function($connection)
 		{
 
 			$authToken = '';
-			if (isset($_SERVER['HTTP_X-AUTH']))
-				$authToken = $_SERVER['HTTP_X-AUTH'];
+			if (isset($_SERVER['HTTP_X_AUTH']))
+				$authToken = $_SERVER['HTTP_X_AUTH'];
 
 			if ($authToken)
 			{
