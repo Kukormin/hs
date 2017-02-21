@@ -372,9 +372,7 @@ $address)
 		$deal = self::getById($dealId);
 		$ads = array();
 		foreach ($deal['AD'] as $adId)
-		{
 			$ads[] = Ad::shortById($adId);
-		}
 		$return = array(
 			'id' => $deal['ID'],
 			'ads' => $ads,
@@ -504,9 +502,12 @@ $address)
 		self::clearUserCache($deal['BUYER']);
 
 		$can_buy = $deal['STATUS'] == 'cancel';
-		$ad = Ad::getById($deal['AD']);
-		if ($ad['CAN_BUY'] != $can_buy)
-			Ad::updateCanBuy($ad['ID'], $can_buy);
+		foreach ($deal['AD'] as $adId)
+		{
+			$ad = Ad::getById($adId);
+			if ($ad['CAN_BUY'] != $can_buy)
+				Ad::updateCanBuy($ad['ID'], $can_buy);
+		}
 
 		return $deal;
 	}
