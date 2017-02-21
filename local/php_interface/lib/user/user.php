@@ -920,8 +920,10 @@ class User
 		if ($statusCode == 'send' && isset($track) && $track !== '')
 			$update['TRACK'] = $track;
 
-		$deal = Deal::update($dealId, $update);
+		Deal::update($dealId, $update);
 		History::add($dealId, $status['ID'], $userId);
+
+		$deal = Deal::format($dealId, $role);
 
 		return $deal;
 	}
