@@ -11,7 +11,8 @@ var Chat = {
 		$('.chat_form').on('submit', Chat.message);
 	},
 	connect: function() {
-		Chat.ws = new WebSocket("ws://" + location.host + ":2346/admin/");
+		Chat.ws = new WebSocket("ws://hi-shopper-app.ru:2346/admin/");
+		//Chat.ws = new WebSocket("ws://" + location.host + ":2346/admin/");
 		Chat.ws.onopen = Chat.onOpen;
 		Chat.ws.onclose = Chat.onClose;
 		Chat.ws.onmessage = Chat.onMessage;
