@@ -26,7 +26,28 @@ var Chat = {
 		setTimeout(Chat.connect, 10000);
 	},
 	onMessage: function(data) {
-		console.log(data);
+		var message = JSON.parse(data.data);
+		if (message.type == 'new') {
+			var div =  $('#chat' + message.suffix + ' .chat');
+			if (div.length) {
+				var cl = 'support';
+				var userName = 'Служба поддержки';
+				var userId = message.user;
+				if (userId) {
+					var url = '/bitrix/admin/iblock_element_edit.php?IBLOCK_ID=9&type=user&ID=' + userId +
+						'&lang=ru&find_section_section=-1';
+					userName = '<a href="' + url + '">' + message.nickname + '</a> (' + message.name + ')';
+					cl = message.role == 1 ? 'seller' : 'buyer';
+				}
+
+				var html = '<dl class="' + cl + '">' +
+					'<dt>[' + message.datef + '] <b>' + userName + '</b></dt><dd>' + message.message + '</dd></dl>';
+				div.append(html);
+			}
+			else {
+				$('#tbl_chats_filterset_filter').click();
+			}
+		}
 	},
 	test: function() {
 		var d = new Date();
@@ -41,13 +62,12 @@ var Chat = {
 		var val = ta.val();
 		var key = div.find('input[name=KEY]').val();
 		if (val) {
-			console.log(key);
-			console.log(val);
 			var data = {
 				'key': key,
 				'message': val
 			}
 			Chat.ws.send(JSON.stringify(data));
+			ta.val('');
 		}
 		return false;
 	}

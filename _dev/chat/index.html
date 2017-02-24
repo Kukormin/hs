@@ -15,7 +15,7 @@
             function wsStart() {
                 ws = new WebSocket("ws://109.197.195.38:2346/");
                 ws.onopen = function() { $("#chat").append("<p>system: connection is open</p>"); };
-                ws.onclose = function() { $("#chat").append("<p>system: the connection is closed, I try to reconnect</p>");
+                ws.onclose = function() { $("#chat").append("<p>system: the connection is closed</p>");
                     //setTimeout(wsStart, 1000);
                 };
                 ws.onmessage = function(evt) { $("#chat").append("<p>"+evt.data+"</p>"); $('#chat').scrollTop($('#chat')[0].scrollHeight);};
@@ -34,8 +34,10 @@
 <body>
     <div id="chat" style="overflow: auto;"><p>system: please wait, I try to connect to the server.</p></div>
     <div class="navbar-fixed-bottom">
-        <form onsubmit="ws.send($('input').val()); $('input').val(''); return false; ">
-            <input id="input" type="text" class="form-control" placeholder="Text input" style="width: 100%;" maxlength="140" autocomplete="off">
+        <form onsubmit="ws.send($('input').val()); return false; ">
+            <input id="input" type="text" class="form-control"
+                   value='{"chat":"usersupport","deal":1290,"message":""}'
+                   placeholder="Text input" style="width: 100%;" maxlength="140" autocomplete="off">
         </form>
     </div>
 </body>

@@ -1081,6 +1081,7 @@ class User
 			'id' => $id,
 		    'push' => 0,
 		    'role' => 1,
+		    'suffix' => 0,
 		    'users' => array(0, $userId),
 		);
 	}

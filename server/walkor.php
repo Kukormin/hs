@@ -29,7 +29,7 @@ use Workerman\Worker;
 
 $ws_worker = new Worker("websocket://0.0.0.0:2346");
 
-$ws_worker->count = 4;
+$ws_worker->count = 1;
 //$ws_worker->transport = 'ssl';
 /*$ws_worker->onWorkerStart = function($ws_worker)
 {
@@ -63,11 +63,11 @@ $ws_worker->onConnect = function($connection)
 					$userId = $session['USER_ID'];
 			}
 
-			/*if (strpos($_SERVER['HTTP_USER_AGENT'], 'AppleWebKit') !== false)
-				$userId = 2767;
-			else
+			if (strpos($_SERVER['HTTP_USER_AGENT'], 'AppleWebKit') !== false)
 				$userId = 54;
-			$connection->send($userId);*/
+			else
+				$userId = 1193;
+			$connection->send($userId);
 
 			if (!$userId)
 			{
@@ -112,6 +112,8 @@ $ws_worker->onMessage = function($connection, $data)
 
 	$return = array();
 	$message = '';
+	$userNickname = '';
+	$userName = '';
 	$now = time();
 
 	try
@@ -133,6 +135,7 @@ $ws_worker->onMessage = function($connection, $data)
 				\Local\User\User::updateChatInfo($oid, true);
 				$params['chat'] = 'usersupport';
 				$return['users'] = array(0, $oid);
+				$return['suffix'] = 0;
 			}
 			elseif ($type == 'd')
 			{
@@ -141,9 +144,10 @@ $ws_worker->onMessage = function($connection, $data)
 				$deal = \Local\Data\Deal::getById($oid);
 				$return['users'] = array(0);
 				if ($ar[2] != 1)
-					$return['users'][] = $deal['SELLER'];
-				if ($ar[2] < 2)
 					$return['users'][] = $deal['BUYER'];
+				if ($ar[2] < 2)
+					$return['users'][] = $deal['SELLER'];
+				$return['suffix'] = $ar[2];
 			}
 			/*if ($updatestatus && $item['IBLOCK_ID'] == $dealsIblockId)
 			{
@@ -158,7 +162,9 @@ $ws_worker->onMessage = function($connection, $data)
 		//
 		else
 		{
-
+			$user = \Local\User\User::getById($userId);
+			$userNickname = trim($user['nickname']);
+			$userName = trim($user['name']);
 			if ($params['chat'] == 'deal')
 				$return = \Local\Data\Deal::message($userId, $params['deal'], $params['message'], false);
 			elseif ($params['chat'] == 'dealsupport')
@@ -166,6 +172,14 @@ $ws_worker->onMessage = function($connection, $data)
 			elseif ($params['chat'] == 'usersupport')
 				$return = \Local\User\User::message($userId, $params['message']);
 		}
+
+		/*$x = array(
+			'type' => 'cons',
+		    'conId' => $connection->id,
+		);
+		foreach (\Local\Chat\SocketChat::$CBU as $uid => $cons)
+			foreach ($cons as $conId => $con)
+				$x[$uid . "|" . $conId] = 1;*/
 
 		foreach ($return['users'] as $uid)
 		{
@@ -181,7 +195,10 @@ $ws_worker->onMessage = function($connection, $data)
 					'date' => date('c', $now),
 					'chat' => $params['chat'],
 					'role' => $return['role'],
+					'suffix' => $return['suffix'],
 					'user' => $userId,
+					'nickname' => $userNickname,
+					'name' => $userName,
 				), JSON_UNESCAPED_UNICODE));
 			}
 		}

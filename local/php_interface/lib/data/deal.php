@@ -571,6 +571,19 @@ $address)
 	}
 
 	/**
+	 * Обновляет только время последнего сообщения в чате
+	 * @param $dealId
+	 */
+	public static function updateChatXmlId($dealId)
+	{
+		$iblockElement = new \CIBlockElement();
+		$fields = array(
+			'XML_ID' => time(),
+		);
+		$iblockElement->Update($dealId, $fields);
+	}
+
+	/**
 	 * Добавляет сообщение в чат сделки
 	 * @param $userId
 	 * @param $dealId
@@ -617,6 +630,8 @@ $address)
 
 		if ($support)
 			self::updateChatInfo($dealId);
+		else
+			self::updateChatXmlId($dealId);
 
 		$suffix = !$support ? 0 : $role;
 		$key = 'd' . '|' . $dealId . '|' . $suffix;
@@ -624,7 +639,8 @@ $address)
 
 		return array(
 			'id' => $id,
-			'role' => $suffix,
+			'role' => $role,
+			'suffix' => $suffix,
 		    'push' => $support ? 0 : $pushUser,
 		    'users' => array(0, $deal['SELLER'], $deal['BUYER']),
 		);

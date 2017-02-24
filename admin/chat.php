@@ -47,6 +47,7 @@ if ($DETAIL)
 	}
 
 	$messages = array();
+	$deal = array();
 	if ($item['IBLOCK_ID'] == $usersIblockId)
 	{
 		$user = \Local\User\User::getById($item['ID']);
