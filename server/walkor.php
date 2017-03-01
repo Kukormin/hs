@@ -63,11 +63,11 @@ $ws_worker->onConnect = function($connection)
 					$userId = $session['USER_ID'];
 			}
 
-			if (strpos($_SERVER['HTTP_USER_AGENT'], 'AppleWebKit') !== false)
+			/*if (strpos($_SERVER['HTTP_USER_AGENT'], 'AppleWebKit') !== false)
 				$userId = 54;
 			else
 				$userId = 1193;
-			$connection->send($userId);
+			$connection->send($userId);*/
 
 			if (!$userId)
 			{
