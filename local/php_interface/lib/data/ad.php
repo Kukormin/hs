@@ -448,7 +448,14 @@ class Ad
 	public static function shortById($adId)
 	{
 		$ad = self::getById($adId);
-		return array(
+		$add = array(
+			'comments' => Comments::getCountByAd($adId),
+			'favorites' => Favorite::getCountByAd($adId),
+		);
+		$userId = Auth::getCurrentUserId();
+		if ($userId)
+			$add['my_favorite'] = Favorite::check($userId, $adId);
+		$return = array(
 			'id' => $ad['ID'],
 			'name' => $ad['NAME'],
 			'created' => $ad['DATE_CREATE'],
@@ -459,7 +466,9 @@ class Ad
 			'price' => $ad['PRICE'],
 			'photo' => Utils::getFileArray(array_shift($ad['PHOTO'])),
 			'can_buy' => $ad['CAN_BUY'],
+			'additional' => $add,
 		);
+		return $return;
 	}
 
 	/**
