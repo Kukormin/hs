@@ -21,8 +21,11 @@ $res = \Local\Data\Feed::getList(array(
 ), true);
 debugmessage($res);*/
 
-$deal['history'] = \Local\Data\History::get(1364, true);
-debugmessage($deal['history']);
+/*$deal['history'] = \Local\Data\History::get(1364, true);
+debugmessage($deal['history']);*/
+
+$dt = 'fc99552bfe7d7d91c8cce259a04d9a0f39a955d2aeaac970399e4368cd5ae31f';
+\Local\User\Push::testMessage($dt, 'test');
 
 
 require $_SERVER['DOCUMENT_ROOT'].'/bitrix/footer.php';

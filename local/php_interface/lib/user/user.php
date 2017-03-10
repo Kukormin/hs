@@ -923,6 +923,11 @@ class User
 		Deal::update($dealId, $update);
 		History::add($dealId, $status['ID'], $userId);
 
+		if ($role == 1)
+			User::push($deal['BUYER'], 'Изменился статус вашей сделки');
+		else
+			User::push($deal['SELLER'], 'Изменился статус вашей сделки');
+
 		$deal = Deal::format($dealId, $role);
 
 		return $deal;

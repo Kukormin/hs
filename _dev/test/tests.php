@@ -953,7 +953,7 @@ $arTests = array(
 		'URI' => '/ad/detail/1202',
 		'DATA' => '',
 		'NEED' => 200,
-		'AUTH' => '',
+		'AUTH' => 'x',
 	),
 	array(
 		'NAME' => 'Поделиться объявлением',
