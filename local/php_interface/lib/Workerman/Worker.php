@@ -1299,7 +1299,7 @@ class Worker
 			        $mess .= $arBacktrace[$i]['function']." >> ";
 		        }
 	        }
-            self::log(print_r(array($error_msg, $mess), true));
+            self::log(print_r(array($error_msg, $errors, $mess), true));
         }
     }
 
