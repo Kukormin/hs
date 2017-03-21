@@ -153,12 +153,12 @@ class Favorite
 			));
 			$query->countTotal(true);
 			$rsItems = $query->exec();
-			$return = $rsItems->getCount() > 0;
+			$return = intval($rsItems->getCount());
 
 			$extCache->endDataCache($return);
 		}
 
-		return $return;
+		return $return > 0;
 	}
 
 	/**
