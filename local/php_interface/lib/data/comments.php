@@ -170,7 +170,7 @@ class Comments
 			throw new ApiException(['comment_add_error'], 500, $iblockElement->LAST_ERROR);
 
 		// обновляем кеш
-		self::getByAd($adId, true);
+		self::clearCache($adId);
 		self::getCountByAd($adId, true);
 
 		News::comment($name, $userId, $adId);
@@ -194,6 +194,16 @@ class Comments
 				return false;
 		}
 		return true;
+	}
+
+	/**
+	 * Очищает кеш комментов для объявления
+	 * @param $adId
+	 */
+	private static function clearCache($adId)
+	{
+		$phpCache = new \CPHPCache();
+		$phpCache->CleanDir(static::CACHE_PATH . 'getByAd/' . $adId);
 	}
 
 }
