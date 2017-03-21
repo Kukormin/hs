@@ -1289,6 +1289,10 @@ class Worker
                 $error_msg .= self::getErrorType($errors['type']) . " {$errors['message']} in {$errors['file']} on line {$errors['line']}";
             }
             self::log($error_msg);
+	        _log_array(array(
+		        self::$_status,
+		        $error_msg
+	        ));
         }
     }
 
