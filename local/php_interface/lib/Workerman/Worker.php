@@ -1288,11 +1288,18 @@ class Worker
             ) {
                 $error_msg .= self::getErrorType($errors['type']) . " {$errors['message']} in {$errors['file']} on line {$errors['line']}";
             }
-            self::log($error_msg);
-	        _log_array(array(
-		        self::$_status,
-		        $error_msg
-	        ));
+	        $mess = '';
+	        if(function_exists('debug_backtrace')) {
+		        $arBacktrace = debug_backtrace();
+		        $iterationsCount = min(count($arBacktrace), 18);
+		        for($i = 1; $i < $iterationsCount; $i++) {
+			        if(strlen($arBacktrace[$i]['class'])) {
+				        $mess .= $arBacktrace[$i]['class'].'::';
+			        }
+			        $mess .= $arBacktrace[$i]['function']." >> ";
+		        }
+	        }
+            self::log(print_r(array($error_msg, $mess), true));
         }
     }
 
