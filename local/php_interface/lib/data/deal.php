@@ -201,12 +201,8 @@ $address)
 		if ($params['history'] == 'Y')
 		{
 			$status = Status::getByCode('complete');
-			$payment = Payment::getByCode('application');
 			if ($status)
-			{
 				$filter['=PROPERTY_STATUS'] = $status['ID'];
-				$filter['=PROPERTY_PAYMENT'] = $payment['ID'];
-			}
 		}
 
 		if (intval($params['count']) > 0)

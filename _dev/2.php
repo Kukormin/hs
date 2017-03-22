@@ -24,8 +24,11 @@ debugmessage($res);*/
 /*$deal['history'] = \Local\Data\History::get(1364, true);
 debugmessage($deal['history']);*/
 
-$dt = 'fc99552bfe7d7d91c8cce259a04d9a0f39a955d2aeaac970399e4368cd5ae31f';
-\Local\User\Push::testMessage($dt, 'test');
+//iconv_set_encoding("internal_encoding", "ISO-8859-1");
+//iconv_set_encoding("output_encoding", "ISO-8859-1");
+//iconv_set_encoding("input_encoding", "ISO-8859-1");
 
+$dt = 'ad6cebc031755b4a2c0292ad57d13304fa9d58c95ef4641ceba20a176e973f3c';
+\Local\User\Push::testMessage($dt, 'кириллица');
 
 require $_SERVER['DOCUMENT_ROOT'].'/bitrix/footer.php';
