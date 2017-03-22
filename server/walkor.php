@@ -136,6 +136,7 @@ $ws_worker->onMessage = function($connection, $data)
 				$params['chat'] = 'usersupport';
 				$return['users'] = array(0, $oid);
 				$return['suffix'] = 0;
+				\Local\User\User::push($oid, 'Новое сообщение от службы поддержки');
 			}
 			elseif ($type == 'd')
 			{
@@ -144,9 +145,15 @@ $ws_worker->onMessage = function($connection, $data)
 				$deal = \Local\Data\Deal::getById($oid);
 				$return['users'] = array(0);
 				if ($ar[2] != 1)
+				{
 					$return['users'][] = $deal['BUYER'];
+					\Local\User\User::push($oid, 'Новое сообщение от службы поддержки');
+				}
 				if ($ar[2] < 2)
+				{
 					$return['users'][] = $deal['SELLER'];
+					\Local\User\User::push($oid, 'Новое сообщение от службы поддержки');
+				}
 				$return['suffix'] = $ar[2];
 			}
 			/*if ($updatestatus && $item['IBLOCK_ID'] == $dealsIblockId)

@@ -627,7 +627,10 @@ $address)
 		if ($support)
 			self::updateChatInfo($dealId);
 		else
+		{
 			self::updateChatXmlId($dealId);
+			User::push($pushUser, 'У вас новое сообщение в чате сделки');
+		}
 
 		$suffix = !$support ? 0 : $role;
 		$key = 'd' . '|' . $dealId . '|' . $suffix;
