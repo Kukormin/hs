@@ -571,7 +571,11 @@ class User
 		Follower::add($userId, $publisherId);
 
 		$user = User::getById($userId);
-		self::push($publisherId, 'Пользователь "' . $user['nickname'] . '" добавил вас в свой список избранных пользователей');
+		self::push(
+			$publisherId,
+			'Пользователь "' . $user['nickname'] . '" добавил вас в свой список избранных пользователей',
+			array('type' => 'follow', 'userId' => intval($userId))
+		);
 
 		return Follower::get($userId);
 	}
@@ -598,7 +602,11 @@ class User
 		Follower::delete($userId, $publisherId);
 
 		$user = User::getById($userId);
-		self::push($publisherId, 'Пользователь "' . $user['nickname'] . '" удалил вас из своего списка избранных пользователей');
+		self::push(
+			$publisherId,
+			'Пользователь "' . $user['nickname'] . '" удалил вас из своего списка избранных пользователей',
+			array('type' => 'unfollow', 'userId' => intval($userId))
+		);
 
 		return Follower::get($userId);
 	}
@@ -924,10 +932,12 @@ class User
 		Deal::update($dealId, $update);
 		History::add($dealId, $status['ID'], $userId);
 
-		if ($role == 1)
-			User::push($deal['BUYER'], 'Изменился статус вашей сделки');
-		else
-			User::push($deal['SELLER'], 'Изменился статус вашей сделки');
+		$pushUser = $role == 1 ? $deal['BUYER'] : $deal['SELLER'];
+		User::push(
+			$pushUser,
+			'Изменился статус вашей сделки',
+			array('type' => 'deal_status', 'dealId' => intval($dealId))
+		);
 
 		$deal = Deal::format($dealId, $role);
 
@@ -1134,11 +1144,11 @@ class User
 		$iblockElement->Update($userId, $fields);
 	}
 
-	public static function push($userId, $message)
+	public static function push($userId, $message, $add = array())
 	{
 		$sessions = Session::getByUser($userId);
 		foreach ($sessions as $session)
-			Push::message($session['PUSH'], $message);
+			Push::message($session['PUSH'], $message, $add);
 	}
 
 }

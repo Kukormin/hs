@@ -95,7 +95,11 @@ $address)
 
 		History::add($id, $status['ID'], $userId);
 
-		User::push($sellerId, 'У Вас новая сделка!');
+		User::push(
+			$sellerId,
+			'У Вас новая сделка!',
+			array('type' => 'new_deal', 'dealId' => intval($id))
+		);
 
 		return $id;
 	}
@@ -639,7 +643,11 @@ $address)
 		else
 		{
 			self::updateChatXmlId($dealId);
-			User::push($pushUser, 'У вас новое сообщение в чате сделки');
+			User::push(
+				$pushUser,
+				'У вас новое сообщение в чате сделки',
+				array('type' => 'deal_message', 'dealId' => intval($dealId))
+			);
 		}
 
 		$suffix = !$support ? 0 : $role;

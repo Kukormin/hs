@@ -136,7 +136,11 @@ $ws_worker->onMessage = function($connection, $data)
 				$params['chat'] = 'usersupport';
 				$return['users'] = array(0, $oid);
 				$return['suffix'] = 0;
-				\Local\User\User::push($oid, 'Новое сообщение от службы поддержки');
+				\Local\User\User::push(
+					$oid,
+					'Новое сообщение от службы поддержки',
+					array('type' => 'support')
+				);
 			}
 			elseif ($type == 'd')
 			{
@@ -147,12 +151,20 @@ $ws_worker->onMessage = function($connection, $data)
 				if ($ar[2] != 1)
 				{
 					$return['users'][] = $deal['BUYER'];
-					\Local\User\User::push($oid, 'Новое сообщение от службы поддержки');
+					\Local\User\User::push(
+						$deal['BUYER'],
+						'Новое сообщение от службы поддержки',
+						array('type' => 'deal_support', 'dealId' => intval($oid))
+					);
 				}
 				if ($ar[2] < 2)
 				{
 					$return['users'][] = $deal['SELLER'];
-					\Local\User\User::push($oid, 'Новое сообщение от службы поддержки');
+					\Local\User\User::push(
+						$deal['SELLER'],
+						'Новое сообщение от службы поддержки',
+						array('type' => 'deal_support', 'dealId' => intval($oid))
+					);
 				}
 				$return['suffix'] = $ar[2];
 			}

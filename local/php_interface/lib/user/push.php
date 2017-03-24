@@ -8,7 +8,7 @@ namespace Local\User;
  */
 class Push
 {
-	public static function message($deviceToken, $message)
+	public static function message($deviceToken, $message, $add = array())
 	{
 		if (!$deviceToken || !$message)
 			return false;
@@ -26,11 +26,13 @@ class Push
 		if (!$socket)
 			return false;
 
+		$body = $add;
 		$body['aps'] = array(
 			'alert' => $message,
 			'badge' => $badge,
 			'sound' => $sound,
 		);
+
 		$body = json_encode($body, JSON_UNESCAPED_UNICODE);
 		$bodyLen = iconv_strlen($body, 'ISO-8859-1');
 		$msg = chr(0) . chr(0) . chr(32) . pack('H*', $deviceToken) . pack('n', $bodyLen) . $body;
