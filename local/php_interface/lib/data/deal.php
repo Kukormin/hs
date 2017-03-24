@@ -71,6 +71,7 @@ $address)
 				'SELLER' => $sellerId,
 				'BUYER' => $userId,
 				'STATUS' => $status['ID'],
+				'STATUS_TS' => time(),
 				'PAYMENT' => $payment['ID'],
 				'DELIVERY' => $delivery['ID'],
 				'DELIVERY_PRICE' => $deliveryPrice,
@@ -316,6 +317,7 @@ $address)
 					'PROPERTY_SELLER',
 					'PROPERTY_BUYER',
 					'PROPERTY_STATUS',
+					'PROPERTY_STATUS_TS',
 					'PROPERTY_PAYMENT',
 					'PROPERTY_DELIVERY',
 					'PROPERTY_DELIVERY_PRICE',
@@ -323,7 +325,9 @@ $address)
 					'PROPERTY_CHECK_PRICE',
 					'PROPERTY_ADDRESS',
 					'PROPERTY_BUYER_RATING',
+					'PROPERTY_BUYER_RATING_TEXT',
 					'PROPERTY_SELLER_RATING',
+					'PROPERTY_SELLER_RATING_TEXT',
 					'PROPERTY_TRACK',
 				)
 			);
@@ -336,6 +340,7 @@ $address)
 					'SELLER' => intval($item['PROPERTY_SELLER_VALUE']),
 					'BUYER' => intval($item['PROPERTY_BUYER_VALUE']),
 					'STATUS' => Status::getCodeById($item['PROPERTY_STATUS_VALUE']),
+					'STATUS_TS' => intval($item['PROPERTY_STATUS_TS_VALUE']),
 				    'PAYMENT' => intval($item['PROPERTY_PAYMENT_VALUE']),
 				    'DELIVERY' => intval($item['PROPERTY_DELIVERY_VALUE']),
 				    'DELIVERY_PRICE' => intval($item['PROPERTY_DELIVERY_PRICE_VALUE']),
@@ -343,7 +348,9 @@ $address)
 				    'CHECK_PRICE' => intval($item['PROPERTY_CHECK_PRICE_VALUE']),
 				    'ADDRESS' => $item['PROPERTY_ADDRESS_VALUE'],
 				    'BUYER_RATING' => intval($item['PROPERTY_BUYER_RATING_VALUE']),
+				    'BUYER_RATING_TEXT' => $item['PROPERTY_BUYER_RATING_TEXT_VALUE'],
 				    'SELLER_RATING' => intval($item['PROPERTY_SELLER_RATING_VALUE']),
+				    'SELLER_RATING_TEXT' => $item['PROPERTY_SELLER_RATING_TEXT_VALUE'],
 				    'TRACK' => $item['PROPERTY_TRACK_VALUE'],
 				    'DETAIL_TEXT' => $item['DETAIL_TEXT'],
 				    'HISTORY' => json_decode($item['DETAIL_TEXT']),
@@ -375,6 +382,7 @@ $address)
 			'seller' => User::publicProfile($deal['SELLER']),
 			'buyer' => User::publicProfile($deal['BUYER']),
 			'status' => $deal['STATUS'],
+			'last_status_date' => date('c', MakeTimeStamp($deal['STATUS_TS'])),
 			'payment' => Payment::getCodeById($deal['PAYMENT']),
 			'delivery' => Delivery::getCodeById($deal['DELIVERY']),
 			'delivery_price' => $deal['DELIVERY_PRICE'],
@@ -383,7 +391,9 @@ $address)
 			'address' => $deal['ADDRESS'],
 			'rating' => array(
 				'seller' => $deal['SELLER_RATING'],
+				'seller_text' => $deal['SELLER_RATING_TEXT'],
 				'buyer' => $deal['BUYER_RATING'],
+				'buyer_text' => $deal['BUYER_RATING_TEXT'],
 			),
 		    'allowed' => array(
 			    'status' => array_keys($deal['ALLOWED']['status'][$role]),
@@ -703,10 +713,11 @@ $address)
 	 * Сохраняет оценку пользователя сделки
 	 * @param $dealId
 	 * @param $rating
+	 * @param $text
 	 * @return array
 	 * @throws ApiException
 	 */
-	public static function rating($dealId, $rating)
+	public static function rating($dealId, $rating, $text)
 	{
 		// Проверяем авторизацию (выкинет исключение, если неавторизован)
 		$session = Auth::check();
@@ -738,7 +749,10 @@ $address)
 		$iblockId = Utils::getIBlockIdByCode('deal');
 
 		$key = $role == 1 ? 'SELLER_RATING' : 'BUYER_RATING';
-		$update = array($key => $rating);
+		$update = array(
+			$key => $rating,
+		    $key . '_TEXT' => $text,
+		);
 
 		$iblockElement->SetPropertyValuesEx($dealId, $iblockId, $update);
 		self::getById($dealId, true);

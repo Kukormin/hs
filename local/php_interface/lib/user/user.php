@@ -914,6 +914,7 @@ class User
 
 		$update = array(
 			'STATUS' => $status['ID'],
+		    'STATUS_TS' => time(),
 		);
 		if ($statusCode == 'price' && isset($price) && $price !== false)
 			$update['DELIVERY_PRICE'] = $price;

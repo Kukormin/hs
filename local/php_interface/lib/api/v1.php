@@ -180,7 +180,7 @@ class v1 extends Api
 		elseif ($method == 'supportchat')
 			return Deal::chat($args[1], true, $this->request);
 		elseif ($method == 'rating')
-			return Deal::rating($this->post['deal'], $this->post['rating']);
+			return Deal::rating($this->post['deal'], $this->post['rating'], $this->post['text']);
 		else
 			throw new ApiException(['wrong_endpoint'], 404);
 	}
