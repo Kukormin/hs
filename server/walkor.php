@@ -154,7 +154,7 @@ $ws_worker->onMessage = function($connection, $data)
 					\Local\User\User::push(
 						$deal['BUYER'],
 						'Новое сообщение от службы поддержки',
-						array('type' => 'deal_support', 'dealId' => intval($oid))
+						array('type' => 'deal_support', 'dealId' => intval($oid), 'role' => 'buyer')
 					);
 				}
 				if ($ar[2] < 2)
@@ -163,7 +163,7 @@ $ws_worker->onMessage = function($connection, $data)
 					\Local\User\User::push(
 						$deal['SELLER'],
 						'Новое сообщение от службы поддержки',
-						array('type' => 'deal_support', 'dealId' => intval($oid))
+						array('type' => 'deal_support', 'dealId' => intval($oid), 'seller')
 					);
 				}
 				$return['suffix'] = $ar[2];

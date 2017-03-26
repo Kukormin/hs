@@ -46,8 +46,8 @@ class Deal
 	 * @return bool
 	 * @throws ApiException
 	 */
-	public static function add($adIds, $name, $userId, $sellerId, $paymentCode, $deliveryCode, $deliveryPrice, $check,
-$address)
+	public static function add($adIds, $name, $userId, $sellerId, $paymentCode,
+	                           $deliveryCode, $deliveryPrice, $check, $address)
 	{
 		$iblockElement = new \CIBlockElement();
 		$iblockId = Utils::getIBlockIdByCode('deal');
@@ -98,7 +98,7 @@ $address)
 		User::push(
 			$sellerId,
 			'У Вас новая сделка!',
-			array('type' => 'new_deal', 'dealId' => intval($id))
+			array('type' => 'new_deal', 'dealId' => intval($id), 'role' => 'seller')
 		);
 
 		return $id;
@@ -620,15 +620,18 @@ $address)
 
 		$role = 0;
 		$pushUser = 0;
+		$pushRole = '';
 		if ($userId == $deal['SELLER'])
 		{
 			$role = 1; // продавец
 			$pushUser = $deal['BUYER'];
+			$pushRole = 'buyer';
 		}
 		elseif ($userId == $deal['BUYER'])
 		{
 			$role = 2; // покупатель
 			$pushUser = $deal['SELLER'];
+			$pushRole = 'seller';
 		}
 
 		if (!$role)
@@ -646,7 +649,7 @@ $address)
 			User::push(
 				$pushUser,
 				'У вас новое сообщение в чате сделки',
-				array('type' => 'deal_message', 'dealId' => intval($dealId))
+				array('type' => 'deal_message', 'dealId' => intval($dealId), 'role' => $pushRole)
 			);
 		}
 
