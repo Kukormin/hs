@@ -47,7 +47,7 @@ class Push
 			return false;
 	}
 
-	public static function testMessage($deviceToken, $message)
+	public static function testMessage($deviceToken, $message, $add = array())
 	{
 		if (!$deviceToken || !$message)
 			return false;
@@ -65,21 +65,23 @@ class Push
 		if (!$socket)
 			return false;
 
+		$body = $add;
 		$body['aps'] = array(
 			'alert' => $message,
 			'badge' => $badge,
 			'sound' => $sound,
 		);
-		debugmessage($body);
+
 		$body = json_encode($body, JSON_UNESCAPED_UNICODE);
-		debugmessage($body);
 		$bodyLen = iconv_strlen($body, 'ISO-8859-1');
-		debugmessage($bodyLen);
 		$msg = chr(0) . chr(0) . chr(32) . pack('H*', $deviceToken) . pack('n', $bodyLen) . $body;
-		debugmessage($msg);
 		$msgLen = iconv_strlen($msg, 'ISO-8859-1');
-		debugmessage($msgLen);
 		$result = fwrite($socket, $msg, $msgLen);
+
+		debugmessage($body);
+		debugmessage($bodyLen);
+		debugmessage($msg);
+		debugmessage($msgLen);
 		debugmessage($result);
 
 		fclose($socket);
@@ -88,7 +90,6 @@ class Push
 			return true;
 		else
 			return false;
-
 	}
 
 }
