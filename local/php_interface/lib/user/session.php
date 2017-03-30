@@ -39,8 +39,11 @@ class Session
 		// Если не найден, то пробуем создать
 		if (!$session)
 			if (self::add($authToken, $userId, $device))
+			{
 				// Если пользователь создан, получаем все его поля, заодно обновляя кеш
 				$session = self::getByToken($authToken, true);
+				self::getByUser($userId, true);
+			}
 
 		if (!$session)
 			throw new ApiException(['session_add_error'], 500);
@@ -184,6 +187,7 @@ class Session
 			$iblockElement = new \CIBlockElement();
 			$iblockElement->Update($session['ID'], array('DETAIL_TEXT' => $pt));
 			self::getByToken($session['NAME'], true);
+			self::getByUser($session['USER_ID'], true);
 		}
 	}
 
