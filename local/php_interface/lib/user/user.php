@@ -581,6 +581,46 @@ class User
 	}
 
 	/**
+	 * Возвращает подписчиков пользователя
+	 * @return array
+	 * @throws ApiException
+	 */
+	public static function followers()
+	{
+		// Проверяем авторизацию (выкинет исключение, если неавторизован)
+		$session = Auth::check();
+		$userId = $session['USER_ID'];
+
+		$return = array();
+
+		$follow = Follower::get($userId);
+		foreach ($follow['followers'] as $id)
+			$return[] = self::publicProfile($id);
+
+		return $return;
+	}
+
+	/**
+	 * Возвращает пользователей, на кого подписан текущий
+	 * @return array
+	 * @throws ApiException
+	 */
+	public static function publishers()
+	{
+		// Проверяем авторизацию (выкинет исключение, если неавторизован)
+		$session = Auth::check();
+		$userId = $session['USER_ID'];
+
+		$return = array();
+
+		$follow = Follower::get($userId);
+		foreach ($follow['publishers'] as $id)
+			$return[] = self::publicProfile($id);
+
+		return $return;
+	}
+
+	/**
 	 * Отписывает текущего пользователя от пользователя $publisherId
 	 * @param $publisherId
 	 * @return array|mixed

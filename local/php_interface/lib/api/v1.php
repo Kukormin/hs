@@ -58,6 +58,10 @@ class v1 extends Api
 			return User::update($this->post);
 		elseif ($method == 'follow')
 			return User::follow($this->post['publisher']);
+		elseif ($method == 'followers')
+			return User::followers();
+		elseif ($method == 'publishers')
+			return User::publishers();
 		elseif ($method == 'unfollow')
 			return User::unfollow($this->post['publisher']);
 		elseif ($method == 'favorite')
