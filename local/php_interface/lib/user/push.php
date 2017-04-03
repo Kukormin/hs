@@ -13,9 +13,11 @@ class Push
 		if (!$deviceToken || !$message)
 			return false;
 
-		$host = 'gateway.sandbox.push.apple.com';
+		//$host = 'gateway.sandbox.push.apple.com';
+		$host = 'gateway.push.apple.com';
 		$port = 2195;
-		$сert = $_SERVER['DOCUMENT_ROOT'] . '/push/hishopper.pem';
+		//$сert = $_SERVER['DOCUMENT_ROOT'] . '/push/hishopper.pem';
+		$сert = $_SERVER['DOCUMENT_ROOT'] . '/push/prod.pem';
 		$badge = 1;
 		$sound = 'default';
 
@@ -52,9 +54,11 @@ class Push
 		if (!$deviceToken || !$message)
 			return false;
 
-		$host = 'gateway.sandbox.push.apple.com';
+		//$host = 'gateway.sandbox.push.apple.com';
+		$host = 'gateway.push.apple.com';
 		$port = 2195;
-		$сert = $_SERVER['DOCUMENT_ROOT'] . '/push/hishopper.pem';
+		//$сert = $_SERVER['DOCUMENT_ROOT'] . '/push/hishopper.pem';
+		$сert = $_SERVER['DOCUMENT_ROOT'] . '/push/prod.pem';
 		$badge = 1;
 		$sound = 'default';
 
