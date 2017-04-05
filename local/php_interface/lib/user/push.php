@@ -18,11 +18,13 @@ class Push
 		$port = 2195;
 		//$сert = $_SERVER['DOCUMENT_ROOT'] . '/push/hishopper.pem';
 		$сert = $_SERVER['DOCUMENT_ROOT'] . '/push/prod.pem';
+		$pass = 'y6T%r4E#';
 		$badge = 1;
 		$sound = 'default';
 
 		$context = stream_context_create();
 		stream_context_set_option($context, 'ssl', 'local_cert', $сert);
+		stream_context_set_option($context, 'ssl', 'passphrase', $pass);
 		$socket = stream_socket_client('ssl://' . $host . ':' . $port, $error, $errstr, 30,
 			STREAM_CLIENT_CONNECT | STREAM_CLIENT_PERSISTENT, $context);
 		if (!$socket)
@@ -59,13 +61,19 @@ class Push
 		$port = 2195;
 		//$сert = $_SERVER['DOCUMENT_ROOT'] . '/push/hishopper.pem';
 		$сert = $_SERVER['DOCUMENT_ROOT'] . '/push/prod.pem';
+		$pass = 'y6T%r4E#';
 		$badge = 1;
 		$sound = 'default';
 
 		$context = stream_context_create();
 		stream_context_set_option($context, 'ssl', 'local_cert', $сert);
+		stream_context_set_option($context, 'ssl', 'passphrase', $pass);
+		stream_context_set_option($context, 'ssl', 'verify_peer_name', false);
 		$socket = stream_socket_client('ssl://' . $host . ':' . $port, $error, $errstr, 30,
 			STREAM_CLIENT_CONNECT | STREAM_CLIENT_PERSISTENT, $context);
+		debugmessage($socket);
+		debugmessage($error);
+		debugmessage($errstr);
 		if (!$socket)
 			return false;
 
