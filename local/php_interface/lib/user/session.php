@@ -192,6 +192,18 @@ class Session
 	}
 
 	/**
+	 * Удаляет сессию
+	 * @param $session
+	 */
+	public static function delete($session)
+	{
+		$iblockElement = new \CIBlockElement();
+		$iblockElement->Delete($session['ID']);
+		self::getByToken($session['NAME'], true);
+		self::getByUser($session['USER_ID'], true);
+	}
+
+	/**
 	 * Удаляет все сессии пользователя
 	 * @param $userId
 	 */

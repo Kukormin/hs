@@ -141,6 +141,16 @@ class Auth
 		);
 	}
 
+	public static function logout()
+	{
+		$session = self::check();
+		Session::delete($session);
+
+		return array(
+			'success' => 1,
+		);
+	}
+
 	private static function getAuthToken()
 	{
 		$headers = getallheaders();

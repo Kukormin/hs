@@ -42,6 +42,8 @@ class v1 extends Api
 				$this->post['device']);
 		elseif ($method == 'setpt')
 			return Auth::setPt($this->post['pt']);
+		elseif ($method == 'logout')
+			return Auth::logout();
 		else
 			throw new ApiException(['wrong_endpoint'], 404);
 	}
