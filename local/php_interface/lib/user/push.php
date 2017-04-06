@@ -47,7 +47,9 @@ class Push
 			$msg = chr(0) . chr(0) . chr(32) . pack('H*', $deviceToken) . pack('n', $bodyLen) . $body;
 			$msgLen = iconv_strlen($msg, 'ISO-8859-1');
 			$result = fwrite($socket, $msg, $msgLen);
+
 			$log['result'] = $msgLen . ' - ' . $result;
+			$log['token'] = $deviceToken;
 
 			fclose($socket);
 		}
