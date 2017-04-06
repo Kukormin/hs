@@ -13,6 +13,9 @@ class Push
 		if (!$deviceToken || !$message)
 			return false;
 
+		$result = '';
+		$log = array();
+
 		//$host = 'gateway.sandbox.push.apple.com';
 		$host = 'gateway.push.apple.com';
 		$port = 2195;
@@ -27,23 +30,29 @@ class Push
 		stream_context_set_option($context, 'ssl', 'passphrase', $pass);
 		$socket = stream_socket_client('ssl://' . $host . ':' . $port, $error, $errstr, 30,
 			STREAM_CLIENT_CONNECT | STREAM_CLIENT_PERSISTENT, $context);
-		if (!$socket)
-			return false;
+		$log['socket'] = $socket ? 1 : 0;
+		$log['error'] = $error;
+		if ($socket)
+		{
 
-		$body = $add;
-		$body['aps'] = array(
-			'alert' => $message,
-			'badge' => $badge,
-			'sound' => $sound,
-		);
+			$body = $add;
+			$body['aps'] = array(
+				'alert' => $message,
+				'badge' => $badge,
+				'sound' => $sound,
+			);
 
-		$body = json_encode($body, JSON_UNESCAPED_UNICODE);
-		$bodyLen = iconv_strlen($body, 'ISO-8859-1');
-		$msg = chr(0) . chr(0) . chr(32) . pack('H*', $deviceToken) . pack('n', $bodyLen) . $body;
-		$msgLen = iconv_strlen($msg, 'ISO-8859-1');
-		$result = fwrite($socket, $msg, $msgLen);
+			$body = json_encode($body, JSON_UNESCAPED_UNICODE);
+			$bodyLen = iconv_strlen($body, 'ISO-8859-1');
+			$msg = chr(0) . chr(0) . chr(32) . pack('H*', $deviceToken) . pack('n', $bodyLen) . $body;
+			$msgLen = iconv_strlen($msg, 'ISO-8859-1');
+			$result = fwrite($socket, $msg, $msgLen);
+			$log['result'] = $msgLen . ' - ' . $result;
 
-		fclose($socket);
+			fclose($socket);
+		}
+
+		_log_array($log);
 
 		if ($result)
 			return true;

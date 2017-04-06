@@ -1187,6 +1187,7 @@ class User
 
 	public static function push($userId, $message, $add = array())
 	{
+		_log_array('-------------------------- Пуш для пользователя: ' . $userId . '   ' . $message);
 		$sessions = Session::getByUser($userId);
 		foreach ($sessions as $session)
 			Push::message($session['PUSH'], $message, $add);
