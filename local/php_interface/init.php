@@ -34,6 +34,7 @@ $lib = '/local/php_interface/lib/';
 		'Local\\User\\Follower' => $lib . 'user/follower.php',
 		'Local\\User\\Favorite' => $lib . 'user/favorite.php',
 		'Local\\User\\Push' => $lib . 'user/push.php',
+		'Local\\User\\Support' => $lib . 'user/support.php',
 		'Local\\Catalog\\Condition' => $lib . 'catalog/condition.php',
 		'Local\\Catalog\\Color' => $lib . 'catalog/color.php',
 		'Local\\Catalog\\Catalog' => $lib . 'catalog/catalog.php',

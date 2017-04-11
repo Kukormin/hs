@@ -647,12 +647,9 @@ class Deal
 		{
 			self::updateChatXmlId($dealId);
 			$pUser = User::getById($pushUser);
-			$pMessage = $pUser['nickname'] . ': ' . $message;
-			if (strlen($pMessage) > 80)
-				$pMessage = substr($pMessage, 0, 80) . '...';
 			User::push(
 				$pushUser,
-				$pMessage,
+				$pUser['nickname'] . ': ' . $message,
 				array('type' => 'deal_message', 'dealId' => intval($dealId), 'role' => $pushRole)
 			);
 		}

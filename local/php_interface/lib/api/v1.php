@@ -8,6 +8,7 @@ use Local\Data\Feed;
 use Local\Data\Options;
 use Local\Data\Status;
 use Local\User\Auth;
+use Local\User\Support;
 use Local\User\User;
 use Local\Data\Faq;
 use Local\Data\Ad;
@@ -42,6 +43,8 @@ class v1 extends Api
 				$this->post['device']);
 		elseif ($method == 'setpt')
 			return Auth::setPt($this->post['pt']);
+		elseif ($method == 'check')
+			return Auth::check();
 		elseif ($method == 'logout')
 			return Auth::logout();
 		else
@@ -187,6 +190,14 @@ class v1 extends Api
 			return Deal::chat($args[1], true, $this->request);
 		elseif ($method == 'rating')
 			return Deal::rating($this->post['deal'], $this->post['rating'], $this->post['text']);
+		else
+			throw new ApiException(['wrong_endpoint'], 404);
+	}
+
+	protected function support($args) {
+		$method = $args[0];
+		if ($method == 'message')
+			return Support::message($this->post['key'], $this->post['message']);
 		else
 			throw new ApiException(['wrong_endpoint'], 404);
 	}

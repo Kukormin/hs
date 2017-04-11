@@ -1187,7 +1187,11 @@ class User
 
 	public static function push($userId, $message, $add = array())
 	{
+		if (strlen($message) > 80)
+			$message = substr($message, 0, 80) . '...';
+
 		_log_array('-------------------------- Пуш для пользователя: ' . $userId . '   ' . $message);
+
 		$sessions = Session::getByUser($userId);
 		foreach ($sessions as $session)
 			Push::message($session['PUSH'], $message, $add);

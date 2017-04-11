@@ -28,20 +28,8 @@ iconv_set_encoding("input_encoding", "ISO-8859-1");
 use Workerman\Worker;
 
 $ws_worker = new Worker("websocket://0.0.0.0:2346");
-
 $ws_worker->count = 1;
-//$ws_worker->transport = 'ssl';
-/*$ws_worker->onWorkerStart = function($ws_worker)
-{
-	$timer_id = Timer::add(3, function() {
-		global $ws_worker;
-		echo count($ws_worker->connections) . " ping\n";
-		foreach ($ws_worker->connections as $connection)
-		{
-			$connection->send(pack('H*', '8900'), true);
-		}
-	});
-};*/
+
 
 // Emitted when new connection come
 $ws_worker->onConnect = function($connection)

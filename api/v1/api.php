@@ -7,6 +7,7 @@ include_once $_SERVER['DOCUMENT_ROOT'] . '/api/bxinit.php';
 try
 {
 	$api = new v1($_REQUEST['request']);
+	_log_array($_REQUEST);
 	echo $api->processAPI();
 }
 catch (ApiException $e)
