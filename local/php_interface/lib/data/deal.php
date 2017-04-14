@@ -95,9 +95,10 @@ class Deal
 
 		History::add($id, $status['ID'], $userId);
 
+		$user = User::getById($userId);
 		User::push(
 			$sellerId,
-			'У Вас новая сделка!',
+			'Ваш товар хочет купить "' . $user['nickname'] . '"!',
 			array('type' => 'new_deal', 'dealId' => intval($id), 'role' => 'seller')
 		);
 

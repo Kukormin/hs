@@ -573,7 +573,7 @@ class User
 		$user = User::getById($userId);
 		self::push(
 			$publisherId,
-			'Пользователь "' . $user['nickname'] . '" добавил вас в свой список избранных пользователей',
+			'На Вас подписался "' . $user['nickname'] . '"',
 			array('type' => 'follow', 'userId' => intval($userId))
 		);
 
@@ -644,7 +644,7 @@ class User
 		$user = User::getById($userId);
 		self::push(
 			$publisherId,
-			'Пользователь "' . $user['nickname'] . '" удалил вас из своего списка избранных пользователей',
+			'От Вас отписался "' . $user['nickname'] . '"',
 			array('type' => 'unfollow', 'userId' => intval($userId))
 		);
 
@@ -974,9 +974,16 @@ class User
 
 		$pushUser = $role == 1 ? $deal['BUYER'] : $deal['SELLER'];
 		$pushRole = $role == 1 ? 'buyer' : 'seller';
+		$user = User::getById($userId);
+		$text = 'Изменился статус вашей сделки';
+		if ($statusCode == 'cancel')
+			$text = '"' . $user['nickname'] . '" отменил сделку';
+		elseif ($statusCode == 'send')
+			$text = 'подтвердите полуечение товара от "' . $user['nickname'] . '"';
+
 		User::push(
 			$pushUser,
-			'Изменился статус вашей сделки',
+			$text,
 			array('type' => 'deal_status', 'dealId' => intval($dealId), 'role' => $pushRole)
 		);
 

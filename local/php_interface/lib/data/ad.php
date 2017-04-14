@@ -702,6 +702,12 @@ class Ad
 
 		$id = Comments::add($adId, $userId, $message);
 
+		User::push(
+			$ad['USER'],
+			'К вашему объявлению добален комментарий',
+			array('type' => 'ad_comment', 'adId' => intval($adId))
+		);
+
 		return array(
 			'id' => $id,
 		);
@@ -863,6 +869,13 @@ class Ad
 
 		if ($id)
 			News::share('app', $userId, $adId);
+
+		$user = User::getById($userId);
+		User::push(
+			$ad['USER'],
+			'ваш товар понравился "' . $user['nickname'] . '"',
+			array('type' => 'ad_share', 'adId' => intval($adId))
+		);
 
 		return array(
 			'id' => $id,
