@@ -1,6 +1,7 @@
 <?
 
 namespace Local\User;
+use Local\Data\Options;
 
 /**
  * Class Push Отправка сообщений в пуш сервер
@@ -8,19 +9,20 @@ namespace Local\User;
  */
 class Push
 {
-	public static function message($deviceToken, $message, $add = array())
+	public static function message($deviceToken, $message, $add = [])
 	{
 		if (!$deviceToken || !$message)
 			return false;
 
 		$result = '';
-		$log = array();
+		$log = [];
 
 		//$host = 'gateway.sandbox.push.apple.com';
-		$host = 'gateway.push.apple.com';
+		//$host = 'gateway.push.apple.com';
+		$host = Options::get('push_server');
 		$port = 2195;
-		//$сert = $_SERVER['DOCUMENT_ROOT'] . '/push/hishopper.pem';
-		$сert = $_SERVER['DOCUMENT_ROOT'] . '/push/prod.pem';
+		$pushFile = Options::get('push_sert');
+		$сert = $_SERVER['DOCUMENT_ROOT'] . '/push/' . $pushFile;
 		$pass = 'y6T%r4E#';
 		$badge = 1;
 		$sound = 'default';
@@ -36,11 +38,11 @@ class Push
 		{
 
 			$body = $add;
-			$body['aps'] = array(
+			$body['aps'] = [
 				'alert' => $message,
 				'badge' => $badge,
 				'sound' => $sound,
-			);
+			];
 
 			$body = json_encode($body, JSON_UNESCAPED_UNICODE);
 			$bodyLen = iconv_strlen($body, 'ISO-8859-1');
@@ -62,16 +64,17 @@ class Push
 			return false;
 	}
 
-	public static function testMessage($deviceToken, $message, $add = array())
+	public static function testMessage($deviceToken, $message, $add = [])
 	{
 		if (!$deviceToken || !$message)
 			return false;
 
 		//$host = 'gateway.sandbox.push.apple.com';
-		$host = 'gateway.push.apple.com';
+		//$host = 'gateway.push.apple.com';
+		$host = Options::get('push_server');
 		$port = 2195;
-		//$сert = $_SERVER['DOCUMENT_ROOT'] . '/push/hishopper.pem';
-		$сert = $_SERVER['DOCUMENT_ROOT'] . '/push/prod.pem';
+		$pushFile = Options::get('push_sert');
+		$сert = $_SERVER['DOCUMENT_ROOT'] . '/push/' . $pushFile;
 		$pass = 'y6T%r4E#';
 		$badge = 1;
 		$sound = 'default';
@@ -89,11 +92,11 @@ class Push
 			return false;
 
 		$body = $add;
-		$body['aps'] = array(
+		$body['aps'] = [
 			'alert' => $message,
 			'badge' => $badge,
 			'sound' => $sound,
-		);
+		];
 
 		$body = json_encode($body, JSON_UNESCAPED_UNICODE);
 		$bodyLen = iconv_strlen($body, 'ISO-8859-1');
