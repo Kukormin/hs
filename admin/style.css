@@ -60,7 +60,8 @@ textarea {
 .hero-unit p .btn {
     margin: 10px 0 0;
 }
-#chats-menu li i {
+#chats-menu li a.na:before {
+    content: '';
     display: inline-block;
     width: 8px;
     height: 8px;

@@ -79,18 +79,22 @@ var Chat = {
 					div.prepend(html);
 				}
 			}
-			Chat.goChat(oid, false);
+			Chat.goChat(oid, false, message.user == 0);
 		}
 	},
 	newChat: function() {
 		var oid = $(this).data('oid');
-		Chat.goChat(oid, true);
+		Chat.goChat(oid, true, false);
 	},
-	goChat: function(oid, activate) {
+	goChat: function(oid, activate, hideIcon) {
 		var a = Chat.ul.find('a[data-id=' + oid + ']');
 		if (a.length) {
 			var li = a.parent();
 			li.prependTo(Chat.ul);
+			if (hideIcon && a.hasClass('na'))
+				a.removeClass('na');
+			if (!hideIcon && !a.hasClass('na'))
+				a.addClass('na');
 			if (activate)
 				Chat.activateLi(li, a);
 		}

@@ -35,10 +35,10 @@
 
 	if ($name)
 	{
-		$x = '';
+		$acl = '';
 		if ($item['SORT'] == 555)
-			$x = '<i></i>';
+			$acl = ' class="na"';
 		?>
-		<li<?= $cl ?>><a data-id="<?= $item['ID'] ?>"
-	                 href="<?= $href ?>"><?= $x ?><?= $title ?>: <?= $name ?></a></li><?
+		<li<?= $cl ?>><a<?= $acl ?> data-id="<?= $item['ID'] ?>"
+	                 href="<?= $href ?>"><?= $title ?>: <?= $name ?></a></li><?
 	}
