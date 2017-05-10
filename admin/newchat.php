@@ -1,24 +1,94 @@
 <?
 require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/prolog_admin_before.php");
-require_once($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/iblock/prolog.php");
 
-/** @var string $by */
-/** @var string $order */
-/** @var string $type */
-/** @var string $need_answer */
-/** @var string $deal_id */
-/** @var string $user_id */
-/** @var string $DETAIL */
-/** @var string $REQUEST_METHOD */
-/** @var string $MESSAGE */
-/** @var string $KEY */
-/** @var string $updatestatus */
 /** @global CMain $APPLICATION */
 
 $iblockElement = new \CIBlockElement();
 $usersIblockId = \Local\Common\Utils::getIBlockIdByCode('user');
 $dealsIblockId = \Local\Common\Utils::getIBlockIdByCode('deal');
+$adsIblockId = \Local\Common\Utils::getIBlockIdByCode('ad');
 
+?><!DOCTYPE html>
+<html>
+<head>
+	<title>Служба поддержки</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link href="bootstrap.min.css" rel="stylesheet" media="screen">
+	<link href="style.css" rel="stylesheet">
+</head>
+<body>
+<div class="navbar navbar-inverse navbar-fixed-top">
+	<div class="navbar-inner">
+		<div class="container-fluid">
+			<button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+			<span class="brand">Служба поддержки</span>
+			<div class="nav-collapse collapse">
+				<p class="navbar-text pull-right">
+					Сервер: <span id="ws_status"></span>
+				</p>
+				<ul class="nav">
+					<li><a href="/bitrix/admin/">Админка</a></li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="container-fluid">
+	<div class="row-fluid">
+		<div class="span3">
+			<div class="well sidebar-nav">
+				<ul id="chats-menu" class="nav nav-list"><?
+
+					$firstItem = false;
+					$rsData = $iblockElement->GetList([
+						'XML_ID' => 'desc',
+						'ID' => 'desc',
+					], [
+						'IBLOCK_ID' => [
+							$usersIblockId,
+						    $dealsIblockId,
+						    $adsIblockId,
+						],
+						'>SORT' => 550,
+					]);
+					while ($item = $rsData->Fetch())
+					{
+						$cl = '';
+						if (!$firstItem)
+						{
+							$firstItem = $item;
+							$cl = ' class="active"';
+						}
+
+						include('li.php');
+					}
+
+					?>
+				</ul>
+			</div>
+		</div>
+		<div class="span9" id="messages-cont"></div>
+	</div>
+
+	<hr>
+
+	<footer>
+		<p></p>
+	</footer>
+
+<script src="jquery.js"></script>
+<script src="bootstrap.min.js"></script>
+<script src="newchat.js"></script>
+</body>
+</html><?
+
+
+die();
 if ($DETAIL)
 {
 	$rsItem = $iblockElement->GetByID($DETAIL);
@@ -40,26 +110,26 @@ if ($DETAIL)
 		if ($updatestatus && $item['IBLOCK_ID'] == $dealsIblockId)
 		{
 			$status = \Local\Data\Status::getByCode($updatestatus);
-			$deal = \Local\Data\Deal::update($item['ID'], array('STATUS' => $status['ID']));
+			$deal = \Local\Data\Deal::update($item['ID'], ['STATUS' => $status['ID']]);
 			\Local\Data\History::add($item['ID'], $status['ID'], 0);
 			$activeTab = 'deal';
 		}
 	}
 
-	$messages = array();
-	$deal = array();
+	$messages = [];
+	$deal = [];
 	if ($item['IBLOCK_ID'] == $usersIblockId)
 	{
 		$user = \Local\User\User::getById($item['ID']);
 		$APPLICATION->SetTitle('Чаты: Пользователь: ' . $user['nickname'] . ' (' . $user['name'] . ')');
-		$aTabs = array(
-			array(
+		$aTabs = [
+			[
 				"DIV" => "chat0",
 				"TAB" => 'Вопросы в службу поддержки',
 				"ICON" => "main_user_edit",
 				"TITLE" => 'Вопросы в службу поддержки'
-			),
-		);
+			],
+		];
 		$key = 'u|' . $item['ID'];
 		$messages[$key] = \Local\Data\Messages::getAllByKey($key);
 	}
@@ -67,32 +137,32 @@ if ($DETAIL)
 	{
 		$deal = \Local\Data\Deal::getById($item['ID']);
 		$APPLICATION->SetTitle('Чаты: Сделка: ' . $deal['NAME']);
-		$aTabs = array(
-			array(
+		$aTabs = [
+			[
 				"DIV" => "chat0",
 				"TAB" => 'Чат сделки',
 				"ICON" => "main_user_edit",
 				"TITLE" => 'Чат сделки'
-			),
-			array(
+			],
+			[
 				"DIV" => "chat1",
 				"TAB" => 'Чат с продавцом',
 				"ICON" => "main_user_edit",
 				"TITLE" => 'Чат с продавцом'
-			),
-			array(
+			],
+			[
 				"DIV" => "chat2",
 				"TAB" => 'Чат с покупателем',
 				"ICON" => "main_user_edit",
 				"TITLE" => 'Чат с покупателем'
-			),
-			array(
+			],
+			[
 				"DIV" => "deal",
 				"TAB" => 'Информация о сделке',
 				"ICON" => "main_user_edit",
 				"TITLE" => 'Информация о сделке'
-			),
-		);
+			],
+		];
 		for ($i = 0; $i <= 2; $i++)
 		{
 			$key = 'd|' . $item['ID'] . '|' . $i;
@@ -108,50 +178,7 @@ if ($DETAIL)
 
 	?>
 	<style>
-		.chat {
 
-		}
-		.chat > dl {
-			margin: 10px 0;
-			padding: 7px 10px;
-			border-radius: 6px;
-		}
-		.chat > dl > dt {
-			margin: 0;
-			padding: 0;
-		}
-		.chat > dl > dd {
-			margin: 4px 0 0;
-		}
-		.chat > .seller {
-			margin-right: 50px;
-			background: #c7ecfc;
-		}
-		.chat > .buyer {
-			margin-right: 50px;
-			background: #e5f6fd;
-		}
-		.chat > .support {
-			margin-left: 50px;
-			background: #e6eecc;
-		}
-		.ta {
-			padding: 0 12px 8px 0;
-		}
-		textarea {
-			width: 100%;
-		}
-		#ws_status {
-			display: inline-block;
-			width: 10px;
-			height: 10px;
-			border-radius: 5px;
-			background: red;
-			margin-bottom: 5px;
-		}
-		#ws_status.connected {
-			background: #01B10E;
-		}
 	</style>
 	<div id="ws_status"></div><?
 
@@ -265,10 +292,10 @@ else
 
 	$sTableID = "tbl_chats"; // ID таблицы
 	$oSort = new \CAdminSorting($sTableID, "ID", "desc"); // объект сортировки
-	$arOrder = (strtoupper($by) === "ID" ? array($by => $order) : array(
+	$arOrder = (strtoupper($by) === "ID" ? [$by => $order] : [
 		$by => $order,
 		"ID" => "ASC"
-	));
+	]);
 	$lAdmin = new \CAdminList($sTableID, $oSort); // основной объект списка
 
 	//
@@ -276,11 +303,11 @@ else
 	//
 
 	// опишем элементы фильтра
-	$FilterArr = Array(
+	$FilterArr = [
 		'type',
 		'deal_id',
 		'user_id',
-	);
+	];
 
 	// инициализируем фильтр
 	$lAdmin->InitFilter($FilterArr);
@@ -291,17 +318,17 @@ else
 	// создадим массив фильтрации
 	$iblock = 0;
 	if ($type == 'A')
-		$iblock = array(
+		$iblock = [
 			$usersIblockId,
 			$dealsIblockId
-		);
+		];
 	elseif ($type == 'D')
 		$iblock = $dealsIblockId;
 	elseif ($type == 'U')
 		$iblock = $usersIblockId;
-	$arFilter = Array(
+	$arFilter = [
 		"IBLOCK_ID" => $iblock,
-	);
+	];
 	if ($deal_id && ($type == 'A' || $type == 'D'))
 		$arFilter['=ID'] = $deal_id;
 	if ($user_id && ($type == 'A' || $type == 'U'))
@@ -314,7 +341,6 @@ else
 	// ==========================================================
 	// ВЫБОРКА ЭЛЕМЕНТОВ СПИСКА
 	// ==========================================================
-	debugmessage($arFilter);
 	$rsData = $iblockElement->GetList($arOrder, $arFilter);
 	$rsData = new CAdminResult($rsData, $sTableID);
 	$rsData->NavStart();
@@ -324,34 +350,34 @@ else
 	// ПОДГОТОВКА СПИСКА К ВЫВОДУ
 	//
 
-	$lAdmin->AddHeaders(array(
-		array(
+	$lAdmin->AddHeaders([
+		[
 			"id" => "ID",
 			"content" => "ID",
 			"sort" => "id",
 			"align" => "right",
 			"default" => true,
-		),
-		array(
+		],
+		[
 			"id" => "OBJECT",
 			"content" => 'Пользователь или сделка',
 			"default" => true,
-		),
-		array(
+		],
+		[
 			"id" => "NA",
 			"sort" => "SORT",
 			"content" => 'Требуется ответ',
 			"default" => true,
-		),
-		array(
+		],
+		[
 			"id" => "DATE",
 			"sort" => "XML_ID",
 			"content" => 'Дата',
 			"default" => true,
-		),
-	));
+		],
+	]);
 
-	$arModelByTopicId = array();
+	$arModelByTopicId = [];
 	while ($item = $rsData->NavNext(true, "f_"))
 	{
 
@@ -375,14 +401,14 @@ else
 		$row->AddViewField("DATE", ConvertTimeStamp($item['XML_ID'], "FULL"));
 
 		// сформируем контекстное меню
-		$arActions = Array();
+		$arActions = [];
 
-		$arActions[] = array(
+		$arActions[] = [
 			"ICON" => "edit",
 			"DEFAULT" => true,
 			"TEXT" => 'Перейти к сообщениям',
 			"ACTION" => $lAdmin->ActionRedirect('chat.php?DETAIL=' . $item['ID']),
-		);
+		];
 
 		// применим контекстное меню к строке
 		$row->AddActions($arActions);
@@ -390,19 +416,19 @@ else
 	}
 
 	// резюме таблицы
-	$lAdmin->AddFooter(array(
-		array(
+	$lAdmin->AddFooter([
+		[
 			"title" => GetMessage("MAIN_ADMIN_LIST_SELECTED"),
 			"value" => $rsData->SelectedRowsCount()
-		),
+		],
 		// кол-во элементов
-		array(
+		[
 			"counter" => true,
 			"title" => GetMessage("MAIN_ADMIN_LIST_CHECKED"),
 			"value" => "0"
-		),
+		],
 		// счетчик выбранных элементов
-	));
+	]);
 
 	// альтернативный вывод
 	$lAdmin->CheckListMode();
@@ -429,12 +455,12 @@ else
 	//
 
 	// создадим объект фильтра
-	$oFilter = new CAdminFilter($sTableID . "_filter", array(
+	$oFilter = new CAdminFilter($sTableID . "_filter", [
 			"Тип",
 			"Требуется ответ",
 			"ID сделки",
 			"ID пользователя",
-		));
+		]);
 	?>
 	<form name="find_form" method="get" action="<? echo $APPLICATION->GetCurPage(); ?>">
 		<? $oFilter->Begin(); ?>
@@ -468,11 +494,11 @@ else
 		</tr>
 
 		<?
-		$oFilter->Buttons(array(
+		$oFilter->Buttons([
 				"table_id" => $sTableID,
 				"url" => $APPLICATION->GetCurPage(),
 				"form" => "find_form"
-			));
+			]);
 		$oFilter->End();
 	?>
 		<div id="ws_status"></div>
@@ -484,7 +510,7 @@ else
 
 $assetInstance = \Bitrix\Main\Page\Asset::getInstance();
 $assetInstance->addJs('/admin/jquery.js');
-$assetInstance->addJs('/admin/chat.js');
+$assetInstance->addJs('/admin/newchat.js');
 
 // завершение страницы
 require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/main/include/epilog_admin.php");

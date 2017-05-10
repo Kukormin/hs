@@ -58,6 +58,8 @@ class Support
 		}
 
 		return [
+			'oid' => $oid,
+			'ot' => $type,
 			'id' => $id,
 			'role' => 0,
 			'suffix' => $suffix,

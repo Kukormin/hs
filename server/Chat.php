@@ -27,7 +27,7 @@ class SocketChat
 
 	public static function getUser()
 	{
-		$return = array();
+		$return = [];
 
 		$authToken = '';
 		if (isset($_SERVER['HTTP_X_AUTH']))
@@ -35,18 +35,18 @@ class SocketChat
 
 		if ($authToken)
 		{
-			$http = new \Http(array(
+			$http = new \Http([
 				'auth' => $authToken,
-			));
+			]);
 			$res = $http->get(API . '/user/profile');
 
 			if ($res['result'])
-				$return = array(
+				$return = [
 					'id' => $res['result']['id'],
 					'name' => $res['result']['name'],
 					'nickname' => $res['result']['nickname'],
 					'auth' => $authToken,
-				);
+				];
 		}
 
 		return $return;
@@ -56,15 +56,18 @@ class SocketChat
 	{
 		$userId = 0;
 		if (isset(self::$UBC[$connection->id]))
-			$userId = self::$UBC[$connection->id];
+		{
+			$user = self::$UBC[$connection->id];
+			$userId = $user['id'];
+		}
 		if (isset(self::$UBC[$connection->id]))
 			unset(self::$UBC[$connection->id]);
-		if (isset(self::$CBU[$userId][$connection->id]))
-		{
-			unset(self::$CBU[$userId][$connection->id]);
-			if (!count(self::$CBU[$userId]))
-				unset(self::$CBU[$userId]);
-		}
+		if (isset(self::$CBU[$userId]) && isset(self::$CBU[$userId][$connection->id]))
+			{
+				unset(self::$CBU[$userId][$connection->id]);
+				if (!count(self::$CBU[$userId]))
+					unset(self::$CBU[$userId]);
+			}
 	}
 
 	public static function getUserData($connection)

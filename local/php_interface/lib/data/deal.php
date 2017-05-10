@@ -660,6 +660,8 @@ class Deal
 		$id = Messages::add($key, $userId, $message);
 
 		return array(
+			'oid' => $dealId,
+			'ot' => 'd',
 			'id' => $id,
 			'role' => $role,
 			'suffix' => $suffix,

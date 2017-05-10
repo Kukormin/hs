@@ -117,6 +117,10 @@ class Claim
 		if (!$reason)
 			throw new ApiException(['wrong_reason'], 400);
 
+		$key = $key = 'a' . '|' . $adId;
+		Messages::add($key, $userId, $reason['NAME']);
+		Ad::updateChatInfo($adId);
+
 		$emailFields = array(
 			"DATE_TIME" => date('d.m.Y H:i'),
 			"AD" => $adId,

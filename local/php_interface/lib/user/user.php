@@ -44,12 +44,12 @@ class User
 	public static function getByPhone($phone, $refreshCache = false) {
 		$phone = strval($phone);
 
-		$return = array();
+		$return = [];
 		$extCache = new ExtCache(
-			array(
+			[
 				__FUNCTION__,
 			    $phone,
-			),
+			],
 			static::CACHE_PATH . __FUNCTION__ . '/',
 			86400 * 20,
 			false // не используем теговый кеш, чтоб не удалять кеш при измененях в пользователях
@@ -62,20 +62,20 @@ class User
 			$iblockId = Utils::getIBlockIdByCode('user');
 
 			$iblockElement = new \CIBlockElement();
-			$rsItems = $iblockElement->GetList(array(), array(
+			$rsItems = $iblockElement->GetList([], [
 				'IBLOCK_ID' => $iblockId,
 				'NAME' => $phone,
-			), false, false, array(
+			], false, false, [
 				'ID', 'NAME', 'ACTIVE', 'TMP_ID',
-			));
+			]);
 			if ($item = $rsItems->Fetch())
 			{
-				$return = array(
+				$return = [
 					'ID' => intval($item['ID']),
 					'NAME' => $item['NAME'],
 				    'ACTIVE' => $item['ACTIVE'],
 				    'SMS' => $item['TMP_ID'],
-				);
+				];
 			}
 
 			$extCache->endDataCache($return);
@@ -130,7 +130,7 @@ class User
 			$profile = self::publicProfile($publicUserId);
 			$follow = Follower::get($userId);
 			$profile['followed'] = in_array($publicUserId, $follow['publishers']);
-			$profile['deals'] = Deal::getByUserFormatted($publicUserId, 1, array('history' => 'Y'));
+			$profile['deals'] = Deal::getByUserFormatted($publicUserId, 1, ['history' => 'Y']);
 			$profile['ads'] = Ad::getListByUser($publicUserId);
 			return $profile;
 		}
@@ -145,14 +145,14 @@ class User
 	{
 		$profile = self::getById($userId);
 		$follow = Follower::get($userId);
-		return array(
+		return [
 			'id' => $profile['id'],
 			'city' => $profile['city'],
 			'name' => $profile['name'],
 			'nickname' => $profile['nickname'],
 			'photo' => $profile['photo'],
 		    'followers' => count($follow['followers'])
-		);
+		];
 	}
 
 	/**
@@ -164,12 +164,12 @@ class User
 	public static function getById($id, $refreshCache = false) {
 		$id = intval($id);
 
-		$return = array();
+		$return = [];
 		$extCache = new ExtCache(
-			array(
+			[
 				__FUNCTION__,
 				$id,
-			),
+			],
 			static::CACHE_PATH . __FUNCTION__ . '/',
 			86400 * 20,
 			false // не используем теговый кеш, чтоб не удалять кеш при измененях в пользователях
@@ -182,10 +182,10 @@ class User
 			$iblockId = Utils::getIBlockIdByCode('user');
 
 			$iblockElement = new \CIBlockElement();
-			$rsItems = $iblockElement->GetList(array(), array(
+			$rsItems = $iblockElement->GetList([], [
 			    'IBLOCK_ID' => $iblockId,
 			    'ID' => $id,
-			), false, false, array(
+			], false, false, [
 				'ID', 'IBLOCK_ID', 'NAME', 'CODE',
 			    'PROPERTY_NAME',
 			    'PROPERTY_CITY',
@@ -199,25 +199,25 @@ class User
 			    'PROPERTY_SIZE',
 			    'PROPERTY_BRAND',
 			    'PROPERTY_SECTION',
-			));
+			]);
 			if ($item = $rsItems->Fetch())
 			{
-				$photo = array();
+				$photo = [];
 				if ($item['PROPERTY_PHOTO_VALUE'])
-					$photo = array(Utils::getFileArray($item['PROPERTY_PHOTO_VALUE']));
+					$photo = [Utils::getFileArray($item['PROPERTY_PHOTO_VALUE'])];
 				$gender = '';
 				if ($item['PROPERTY_GENDER_ENUM_ID'])
 					$gender = Gender::getCodeById($item['PROPERTY_GENDER_ENUM_ID']);
-				$size = array();
+				$size = [];
 				foreach ($item['PROPERTY_SIZE_VALUE'] as $tmp)
 					$size[] = intval($tmp);
-				$brand = array();
+				$brand = [];
 				foreach ($item['PROPERTY_BRAND_VALUE'] as $tmp)
 					$brand[] = intval($tmp);
-				$section = array();
+				$section = [];
 				foreach ($item['PROPERTY_SECTION_VALUE'] as $tmp)
 					$section[] = intval($tmp);
-				$return = array(
+				$return = [
 					'id' => intval($item['ID']),
 					'phone' => $item['NAME'],
 					'name' => $item['PROPERTY_NAME_VALUE'],
@@ -226,16 +226,16 @@ class User
 					'email' => $item['PROPERTY_EMAIL_VALUE'],
 					'photo' => $photo,
 					'gender' => $gender,
-					'address' => array(
+					'address' => [
 						'street' => $item['PROPERTY_STREET_VALUE'],
 						'flat' => $item['PROPERTY_FLAT_VALUE'],
 						'index' => $item['PROPERTY_INDEX_VALUE'],
 						'fio' => $item['PROPERTY_FIO_VALUE'],
-					),
+					],
 					'sizes' => $size,
 					'brands' => $brand,
 					'sections' => $section,
-				);
+				];
 			}
 
 			$extCache->endDataCache($return);
@@ -254,11 +254,11 @@ class User
 		$iblockElement = new \CIBlockElement();
 
 		$iblockId = Utils::getIBlockIdByCode('user');
-		$id = $iblockElement->Add(array(
+		$id = $iblockElement->Add([
 			'IBLOCK_ID' => $iblockId,
 			'NAME' => $phone,
 			'ACTIVE' => 'Y',
-		));
+		]);
 		if (!$id)
 			throw new ApiException(['user_add_error'], 500, $iblockElement->LAST_ERROR);
 
@@ -281,9 +281,9 @@ class User
 			throw new ApiException(['space'], 400);
 
 		$id = self::getIdByNickName($nickname);
-		return array(
+		return [
 			'used' => $id ? 1 : 0,
-		);
+		];
 	}
 
 	/**
@@ -303,7 +303,7 @@ class User
 		$iblockElement = new \CIBlockElement();
 		$iblockId = Utils::getIBlockIdByCode('user');
 
-		$fields = array();
+		$fields = [];
 		if ($data['nickname'] && $profile['nickname'] != $data['nickname'])
 		{
 			$nickname = htmlspecialchars(trim($data['nickname']));
@@ -324,7 +324,7 @@ class User
 		if ($fields)
 			$iblockElement->Update($userId, $fields);
 
-		$properties = array();
+		$properties = [];
 		if ($data['name'] && $profile['name'] != $data['name'])
 			$properties['NAME'] = htmlspecialchars(trim($data['name']));
 		if ($data['city'] && $profile['city'] != $data['city'])
@@ -349,7 +349,7 @@ class User
 		}
 		if (isset($data['sizes']) && $profile['sizes'] != $data['sizes'])
 		{
-			$sizeIds = array();
+			$sizeIds = [];
 			foreach($data['sizes'] as $id)
 			{
 				$size = Size::getById($id);
@@ -361,7 +361,7 @@ class User
 		}
 		if (isset($data['brands']) && $profile['brands'] != $data['brands'])
 		{
-			$brandIds = array();
+			$brandIds = [];
 			foreach($data['brands'] as $id)
 			{
 				$brand = Brand::getById($id);
@@ -374,7 +374,7 @@ class User
 		}
 		if (isset($data['sections']) && $profile['sections'] != $data['sections'])
 		{
-			$sectionIds = array();
+			$sectionIds = [];
 			foreach($data['sections'] as $id)
 			{
 				$section = Catalog::getSectionById($id);
@@ -390,9 +390,9 @@ class User
 			break;
 		}
 		if (!$properties['PHOTO'] && $data['photo'] == 'delete' && $profile['photo'])
-			$properties['PHOTO'] = array(
+			$properties['PHOTO'] = [
 				'del' => 'Y'
-			);
+			];
 
 		if ($properties)
 			$iblockElement->SetPropertyValuesEx($userId, $iblockId, $properties);
@@ -412,12 +412,12 @@ class User
 		$id = 0;
 		$iblockId = Utils::getIBlockIdByCode('user');
 		$iblockElement = new \CIBlockElement();
-		$rsItems = $iblockElement->GetList(array(), array(
+		$rsItems = $iblockElement->GetList([], [
 			'CODE' => $code,
 			'IBLOCK_ID' => $iblockId,
-		), false, false, array(
+		], false, false, [
 			'ID',
-		));
+		]);
 		if ($item = $rsItems->Fetch())
 			$id = $item['ID'];
 
@@ -432,21 +432,21 @@ class User
 	 */
 	public static function search($params)
 	{
-		$return = array();
+		$return = [];
 
 		$q = htmlspecialchars($params['q']);
 		if (strlen($q) < 3)
 			throw new ApiException(['short_query'], 400);
 
-		$filter = array(
+		$filter = [
 			'CODE' => '%' . $q . '%',
-		);
+		];
 
 		if ($params['type'] == 'count')
 		{
-			$return = array(
+			$return = [
 				'count' => self::getCountByFilter($filter),
-			);
+			];
 		}
 		else
 		{
@@ -473,10 +473,10 @@ class User
 	private static function getCountByFilter($filter, $refreshCache = false)
 	{
 		$extCache = new ExtCache(
-			array(
+			[
 				__FUNCTION__,
 				$filter,
-			),
+			],
 			static::CACHE_PATH . __FUNCTION__ . '/',
 			7200
 		);
@@ -490,9 +490,9 @@ class User
 
 			$iblockElement = new \CIBlockElement();
 			$return = $iblockElement->GetList(
-				array('ID' => 'DESC'),
+				['ID' => 'DESC'],
 				$filter,
-				array(),
+				[],
 				false
 			);
 
@@ -511,14 +511,14 @@ class User
 	 */
 	private static function getByFilter($filter, $count, $refreshCache = false)
 	{
-		$return = array();
+		$return = [];
 
 		$extCache = new ExtCache(
-			array(
+			[
 				__FUNCTION__,
 				$filter,
 				$count,
-			),
+			],
 			static::CACHE_PATH . __FUNCTION__ . '/',
 			7200
 		);
@@ -532,13 +532,13 @@ class User
 
 			$iblockElement = new \CIBlockElement();
 			$rsItems = $iblockElement->GetList(
-				array('ID' => 'DESC'),
+				['ID' => 'DESC'],
 				$filter,
 				false,
-				array('nTopCount' => $count),
-				array(
+				['nTopCount' => $count],
+				[
 					'ID',
-				)
+				]
 			);
 			while ($item = $rsItems->Fetch())
 				$return[] = intval($item['ID']);
@@ -574,7 +574,7 @@ class User
 		self::push(
 			$publisherId,
 			'На Вас подписался "' . $user['nickname'] . '"',
-			array('type' => 'follow', 'userId' => intval($userId))
+			['type' => 'follow', 'userId' => intval($userId)]
 		);
 
 		return Follower::get($userId);
@@ -591,7 +591,7 @@ class User
 		$session = Auth::check();
 		$userId = $session['USER_ID'];
 
-		$return = array();
+		$return = [];
 
 		$follow = Follower::get($userId);
 		foreach ($follow['followers'] as $id)
@@ -611,7 +611,7 @@ class User
 		$session = Auth::check();
 		$userId = $session['USER_ID'];
 
-		$return = array();
+		$return = [];
 
 		$follow = Follower::get($userId);
 		foreach ($follow['publishers'] as $id)
@@ -645,7 +645,7 @@ class User
 		self::push(
 			$publisherId,
 			'От Вас отписался "' . $user['nickname'] . '"',
-			array('type' => 'unfollow', 'userId' => intval($userId))
+			['type' => 'unfollow', 'userId' => intval($userId)]
 		);
 
 		return Follower::get($userId);
@@ -672,9 +672,9 @@ class User
 
 		Favorite::add($userId, $adId);
 
-		return array(
+		return [
 			'count' => Favorite::getCountByUser($userId),
-		);
+		];
 	}
 
 	/**
@@ -698,9 +698,9 @@ class User
 
 		Favorite::remove($userId, $adId);
 
-		return array(
+		return [
 			'count' => Favorite::getCountByUser($userId),
-		);
+		];
 	}
 
 	/**
@@ -715,14 +715,14 @@ class User
 		$session = Auth::check();
 		$userId = $session['USER_ID'];
 
-		$return = array();
+		$return = [];
 
 		$fav = Favorite::getList($userId, $params);
 		foreach ($fav as $item)
-			$return[] = array(
+			$return[] = [
 				'id' => $item['ID'],
 				'ad' => Ad::shortById($item['AD']),
-			);
+			];
 
 		return $return;
 	}
@@ -738,9 +738,9 @@ class User
 		$session = Auth::check();
 		$userId = $session['USER_ID'];
 
-		return array(
+		return [
 			'count' => Favorite::getCountByUser($userId),
-		);
+		];
 	}
 
 	/**
@@ -817,9 +817,9 @@ class User
 
 		$id = Deal::add($adIds, $name, $userId, $sellerId, $payment, $delivery, $deliveryPrice, $check, $address);
 
-		return array(
+		return [
 			'id' => $id,
-		);
+		];
 	}
 
 	/**
@@ -871,11 +871,11 @@ class User
 			throw new ApiException(['wrong_delivery'], 400);
 
 		$deal['AD'][] = $adId;
-		Deal::update($dealId, array('AD' => $deal['AD']));
+		Deal::update($dealId, ['AD' => $deal['AD']]);
 
-		return array(
+		return [
 			'id' => $dealId,
-		);
+		];
 	}
 
 	public static function removeAdFromDeal($adId, $dealId)
@@ -903,17 +903,17 @@ class User
 		if (count($deal['AD']) < 2)
 			throw new ApiException(['last_ad'], 400);
 
-		$ads = array();
+		$ads = [];
 		foreach ($deal['AD'] as $id)
 		{
 			if ($id != $adId)
 				$ads[] = $id;
 		}
-		Deal::update($dealId, array('AD' => $ads));
+		Deal::update($dealId, ['AD' => $ads]);
 
-		return array(
+		return [
 			'id' => $dealId,
-		);
+		];
 	}
 
 	/**
@@ -960,10 +960,10 @@ class User
 		if (!$deal['ALLOWED']['status'][$role][$statusCode])
 			throw new ApiException(['update_not_allowed'], 400);
 
-		$update = array(
+		$update = [
 			'STATUS' => $status['ID'],
 		    'STATUS_TS' => time(),
-		);
+		];
 		if ($statusCode == 'price' && isset($price) && $price !== false)
 			$update['DELIVERY_PRICE'] = $price;
 		if ($statusCode == 'send' && isset($track) && $track !== '')
@@ -984,7 +984,7 @@ class User
 		User::push(
 			$pushUser,
 			$text,
-			array('type' => 'deal_status', 'dealId' => intval($dealId), 'role' => $pushRole)
+			['type' => 'deal_status', 'dealId' => intval($dealId), 'role' => $pushRole]
 		);
 
 		$deal = Deal::format($dealId, $role);
@@ -1015,9 +1015,9 @@ class User
 		if ($userId != $deal['SELLER'])
 			throw new ApiException(['not_your_deal'], 400);
 
-		$update = array(
+		$update = [
 			'TRACK' => $track,
-		);
+		];
 		$deal = Deal::update($dealId, $update);
 
 		return $deal;
@@ -1088,7 +1088,7 @@ class User
 	 * @return mixed
 	 * @throws ApiException
 	 */
-	public static function getMyAds($sub, $params = array())
+	public static function getMyAds($sub, $params = [])
 	{
 		// Проверяем авторизацию (выкинет исключение, если неавторизован)
 		$session = Auth::check();
@@ -1110,8 +1110,8 @@ class User
 			$profile = self::profile();
 			$profile['share_count'] = News::getShareCount($userId);
 			$profile['ads_count'] = Ad::getCountByUser($userId);
-			$profile['ads'] = Ad::getListByUser($userId, array(), true);
-			$profile['deals'] = Deal::getByUserFormatted($userId, 1, array('history' => 'Y'));
+			$profile['ads'] = Ad::getListByUser($userId, [], true);
+			$profile['deals'] = Deal::getByUserFormatted($userId, 1, ['history' => 'Y']);
 			return $profile;
 		}
 	}
@@ -1141,13 +1141,15 @@ class User
 
 		self::updateChatInfo($userId);
 
-		return array(
+		return [
+			'oid' => $userId,
+			'ot' => 'u',
 			'id' => $id,
 		    'push' => 0,
 		    'role' => 1,
 		    'suffix' => 0,
-		    'users' => array(0, $userId),
-		);
+		    'users' => [0, $userId],
+		];
 	}
 
 	/**
@@ -1156,22 +1158,22 @@ class User
 	 * @return array
 	 * @throws ApiException
 	 */
-	public static function chat($params = array())
+	public static function chat($params = [])
 	{
 		// Проверяем авторизацию (выкинет исключение, если неавторизован)
 		$session = Auth::check();
 		$userId = $session['USER_ID'];
 		$key = 'u' . '|' . $userId;
 
-		$return = array();
+		$return = [];
 		$messages = Messages::getByKey($key, $params);
 		foreach ($messages as $message)
 		{
-			$return[] = array(
+			$return[] = [
 				'id' => $message['ID'],
 				'message' => $message['MESSAGE'],
 				'user' => $message['USER'],
-			);
+			];
 		}
 
 		return $return;
@@ -1185,14 +1187,20 @@ class User
 	public static function updateChatInfo($userId, $isSupport = false)
 	{
 		$iblockElement = new \CIBlockElement();
-		$fields = array(
+		$fields = [
 			'SORT' => $isSupport ? 560 : 555,
 		    'XML_ID' => time(),
-		);
+		];
 		$iblockElement->Update($userId, $fields);
 	}
 
-	public static function push($userId, $message, $add = array())
+	/**
+	 * Отправка пуш сообщения всем сессиям пользователя
+	 * @param $userId
+	 * @param $message
+	 * @param array $add
+	 */
+	public static function push($userId, $message, $add = [])
 	{
 		if (strlen($message) > 80)
 			$message = substr($message, 0, 80) . '...';

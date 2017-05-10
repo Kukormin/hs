@@ -910,6 +910,22 @@ class Ad
 	}
 
 	/**
+	 * Обновляет поля чата, для работы службы поддержки
+	 * @param $adId
+	 * @param $isSupport
+	 */
+	public static function updateChatInfo($adId, $isSupport = false)
+	{
+		$iblockElement = new \CIBlockElement();
+		$fields = [
+			'SORT' => $isSupport ? 560 : 555,
+			'XML_ID' => time(),
+		];
+		$iblockElement->Update($adId, $fields);
+	}
+
+
+	/**
 	 * Очищает кеш списка объявлений
 	 */
 	private static function clearListCache()

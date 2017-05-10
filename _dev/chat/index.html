@@ -13,7 +13,7 @@
         $(function(){
 
             function wsStart() {
-                ws = new WebSocket("ws://109.197.195.38:2346/");
+                ws = new WebSocket("ws://" + location.host + ":2346/");
                 ws.onopen = function() { $("#chat").append("<p>system: connection is open</p>"); };
                 ws.onclose = function() { $("#chat").append("<p>system: the connection is closed</p>");
                     //setTimeout(wsStart, 1000);

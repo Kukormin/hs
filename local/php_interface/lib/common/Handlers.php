@@ -45,7 +45,7 @@ class Handlers
 			'sort' => 60,
 			'text' => 'Чаты',
 			'title' => 'Чаты в рамках сделок и вопросы в службу поддержки',
-			'url' => 'chat.php',
+			'url' => 'http://hi-shopper-app.ru/admin/newchat.php',
 			'icon' => 'forum_menu_icon',
 			'items_id' => 'chat',
 		);

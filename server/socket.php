@@ -2,6 +2,7 @@
 $_SERVER['DOCUMENT_ROOT'] = realpath(dirname(__FILE__).'/..');
 
 define('API' , 'https://hi-shopper-app.ru/api/v1');
+//define('API' , 'http://www.hi-shopper.tim/api/v1');
 
 require_once('Workerman/Autoloader.php');
 require_once('Chat.php');
@@ -21,15 +22,21 @@ $ws_worker->onConnect = function($connection)
 {
 	$connection->onWebSocketConnect = function($connection, $buffer)
 	{
-		$user = array(
+		$user = [
 			'id' => 0,
 			'name' => '',
 			'nickname' => '',
 			'auth' => '',
-		);
+		];
 		if ($_SERVER['REQUEST_URI'] != '/admin/')
 		{
 			$user = \Chat\SocketChat::getUser();
+			/*$user = [
+				'id' => 54,
+				'name' => 'Елизавета Смирнова',
+				'nickname' => 'PinkPanter',
+				'auth' => 'd04b9458a812f70baf7aa6aa77a4373c',
+			];*/
 
 			if (!$user)
 			{
@@ -59,11 +66,11 @@ $ws_worker->onMessage = function($connection, $data)
 	}
 	catch (\Exception $e)
 	{
-		$message = json_encode(Array(
-			'errors' => array('json_decode_error'),
+		$message = json_encode([
+			'errors' => ['json_decode_error'],
 			'code' => $e->getCode(),
 			'message' => $e->getMessage(),
-		), JSON_UNESCAPED_UNICODE);
+		], JSON_UNESCAPED_UNICODE);
 		$connection->send($message);
 		return false;
 	}
@@ -71,7 +78,7 @@ $ws_worker->onMessage = function($connection, $data)
 	if (!$params['message'])
 		return false;
 
-	$return = array();
+	$return = [];
 	$message = '';
 	$now = time();
 
@@ -97,9 +104,9 @@ $ws_worker->onMessage = function($connection, $data)
 		{
 			// {"chat":"deal","deal":1290,"message":"тест"}
 
-			$http = new \Http(array(
+			$http = new \Http([
 				'auth' => $user['auth'],
-			));
+			]);
 			if ($params['chat'] == 'deal')
 				$return = $http->post(API . '/deal/message', $data);
 			elseif ($params['chat'] == 'dealsupport')
@@ -109,45 +116,50 @@ $ws_worker->onMessage = function($connection, $data)
 			$chat = $params['chat'];
 		}
 
-		foreach ($return['result']['users'] as $uid)
+		if ($return['result'])
 		{
-			$cons = \Chat\SocketChat::getConnections($uid);
-
-			foreach ($cons as $con)
+			foreach ($return['result']['users'] as $uid)
 			{
-				$con->send(json_encode(array(
-					'type' => 'new',
-					'id' => $return['result']['id'],
-					'message' => $params['message'],
-					'datef' => date('d.m.Y H:i:s', $now),
-					'date' => date('c', $now),
-					'chat' => $chat,
-					'role' => $return['result']['role'],
-					'suffix' => $return['result']['suffix'],
-					'user' => $user['id'],
-					'nickname' => $user['nickname'],
-					'name' => $user['name'],
-				), JSON_UNESCAPED_UNICODE));
+				$cons = \Chat\SocketChat::getConnections($uid);
+
+				foreach ($cons as $con)
+				{
+					$con->send(json_encode([
+						'type' => 'new',
+						'oid' => $return['result']['oid'],
+						'ot' => $return['result']['ot'],
+						'id' => $return['result']['id'],
+						'message' => $params['message'],
+						'datef' => date('d.m.Y H:i:s', $now),
+						'date' => date('c', $now),
+						'chat' => $chat,
+						'role' => $return['result']['role'],
+						'suffix' => $return['result']['suffix'],
+						'user' => $user['id'],
+						'nickname' => $user['nickname'],
+						'name' => $user['name'],
+					], JSON_UNESCAPED_UNICODE));
+				}
 			}
 		}
 	}
 	catch (\Local\Api\ApiException $e)
 	{
-		$return = array(
+		$return = [
 			'result' => null,
 			'errors' => $e->getErrors(),
-		);
+		];
 		if ($e->getMessage())
 			$return['message'] = $e->getMessage();
 		$message = json_encode($return, JSON_UNESCAPED_UNICODE);
 	}
 	catch (\Exception $e)
 	{
-		$message = json_encode(Array(
-			'errors' => array('unknown_error'),
+		$message = json_encode([
+			'errors' => ['unknown_error'],
 			'code' => $e->getCode(),
 			'message' => $e->getMessage(),
-		), JSON_UNESCAPED_UNICODE);
+		], JSON_UNESCAPED_UNICODE);
 	}
 
 	if ($message)

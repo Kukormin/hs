@@ -100,7 +100,7 @@ class Messages
 		$iblockId = Utils::getIBlockIdByCode('chat');
 		$iblockElement = new \CIBlockElement();
 		$rsItems = $iblockElement->GetList(
-			array('ID' => 'ASC'),
+			array('ID' => 'DESC'),
 			array(
 				'=CODE' => $key,
 				'IBLOCK_ID' => $iblockId,
