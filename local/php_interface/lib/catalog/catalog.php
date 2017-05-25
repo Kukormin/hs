@@ -43,7 +43,7 @@ class Catalog
 			$rsSections = $iblockSection->GetList(array('LEFT_MARGIN' => 'ASC', 'SORT' => 'ASC'), array(
 				'IBLOCK_ID' => $iblockId,
 			), false, array(
-				'UF_SIZE', 'UF_WEIGHT',
+				'UF_SIZE', 'UF_WEIGHT', 'UF_EN_NAME',
 			));
 			while ($section = $rsSections->Fetch())
 			{
@@ -52,6 +52,7 @@ class Catalog
 				$return[$id] = array(
 					'ID' => $id,
 					'NAME' => $section['NAME'],
+					'EN_NAME' => $section['UF_EN_NAME'],
 					'FULL' => $section['CODE'],
 					'ACTIVE' => $section['ACTIVE'],
 					'PARENT' => $parent,
@@ -105,6 +106,7 @@ class Catalog
 				$return[] = array(
 					'id' => $item['ID'],
 					'name' => $item['NAME'],
+					'en_name' => $item['EN_NAME'],
 					'full' => $item['FULL'],
 					'parent' => $item['PARENT'],
 				    'size' => $item['H_SIZE'],
