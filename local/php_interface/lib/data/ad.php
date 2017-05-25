@@ -111,6 +111,9 @@ class Ad
 		if (!$props['FEATURES'])
 			$errors[] = 'empty_features';
 
+		// Описание
+		$props['DESCRIPTION'] = htmlspecialchars(trim($params['description']));
+
 		// Цены
 		$props['PURCHASE'] = intval($params['purchase']);
 		if ($props['PURCHASE'] < 0)
@@ -396,6 +399,7 @@ class Ad
 				'PROPERTY_COLOR',
 				'PROPERTY_SIZE',
 				'PROPERTY_MATERIAL',
+				'PROPERTY_DESCRIPTION',
 				'PROPERTY_FEATURES',
 				'PROPERTY_PURCHASE',
 				'PROPERTY_PRICE',
@@ -423,6 +427,7 @@ class Ad
 					'COLOR' => intval($item['PROPERTY_COLOR_VALUE']),
 					'SIZE' => intval($item['PROPERTY_SIZE_VALUE']),
 					'MATERIAL' => $item['PROPERTY_MATERIAL_VALUE'],
+					'DESCRIPTION' => $item['PROPERTY_DESCRIPTION_VALUE'],
 					'FEATURES' => $item['PROPERTY_FEATURES_VALUE'],
 					'PURCHASE' => intval($item['PROPERTY_PURCHASE_VALUE']),
 					'PRICE' => intval($item['PROPERTY_PRICE_VALUE']),
@@ -782,6 +787,7 @@ class Ad
 			'color' => $ad['COLOR'],
 			'size' => Size::getById($ad['SIZE'])['NAME'],
 			'material' => $ad['MATERIAL'],
+			'description' => $ad['DESCRIPTION'],
 			'features' => $ad['FEATURES'],
 			'purchase' => $ad['PURCHASE'],
 			'price' => $ad['PRICE'],
