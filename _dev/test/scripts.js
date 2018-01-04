@@ -1,5 +1,6 @@
 $(document).ready(function() {
 	var bAll = false;
+	var bAuth = false;
 	$('tr.test input[type=button]').click(function() {
 		var sHost = $('#url').val();
 		var jqRow = $(this).closest('tr.test');
@@ -41,9 +42,6 @@ $(document).ready(function() {
 			formData = '';
 		}
 
-		console.log(sHost);
-		console.log(sUri);
-
 		$.ajax({
 			url: sHost + sUri,
 			type: sType,
@@ -64,18 +62,8 @@ $(document).ready(function() {
 				var sText = response.responseText ? response.responseText : '(пустая строка)';
 				jqResultRow.html('<td colspan="9">' + sText + '</td>');
 
-				if (bAll) {
-					var jqNext = jqResultRow.next();
-					if (jqNext.length) {
-						jqNext.find('input[type=button]').click();
-					}
-					else {
-						bAll = false;
-					}
-				}
 				if (response.responseText.length > 4) {
 					var jsonData = jQuery.parseJSON(response.responseText);
-					console.log(jsonData);
 					if (sUri == '/auth/phone_debug') {
 						jqRow.siblings('#r' + (rowId + 2)).children('td:eq(5)').children('input').val('{"phone":"79170010203","code":"0001","user":' +  jsonData.result.user + ',"device":{"uuid":"0a89df6v7df6sv7r6s07f","pt":"df79b6sd8fbg6","x":320,"y":480}}');
 						jqRow.siblings('#r' + (rowId + 3)).children('td:eq(5)').children('input').val('{"phone":"79170010203","code":"' + jsonData.result.sms + '","user":' +  jsonData.result.user + ',"device":{"uuid":"0a89df6v7df6sv7r6s07f","pt":"df79b6sd8fbg6","x":320,"y":480}}');
@@ -93,6 +81,21 @@ $(document).ready(function() {
 						jqRow.siblings('#r' + (rowId + 10)).children('td:eq(5)').children('input').val('{"ad":' +  jsonData.result.id + '}');
 					}
 				}
+
+				if (bAll) {
+					var jqNext = jqResultRow.next();
+					if (jqNext.length) {
+						jqNext.find('input[type=button]').click();
+					}
+					else {
+						bAll = false;
+					}
+				}
+				if (bAuth) {
+					bAuth = false;
+					var jqNext = $('#r8 input[type=button]');
+					jqNext.click();
+				}
 			}
 		});
 		return false;
@@ -106,6 +109,12 @@ $(document).ready(function() {
 	$('#test_all').on('click', function() {
 		bAll = true;
 		var jqBtn = $('tr.test:first input[type=button]');
+		jqBtn.click();
+		return false;
+	});
+	$('#auth').on('click', function() {
+		bAuth = true;
+		var jqBtn = $('#r5 input[type=button]');
 		jqBtn.click();
 		return false;
 	});

@@ -13,6 +13,9 @@
 <p>
 	Картинки для добавления <input id="picture" name="picture" type="file" multiple />
 </p>
+<p>
+	Авторизоваться <input id="auth" type="button" value="Авторизация"/>
+</p>
 <table class="results">
 	<tr>
 		<th>Запрос</th>

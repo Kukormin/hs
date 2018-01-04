@@ -206,8 +206,8 @@ class User
 				if ($item['PROPERTY_PHOTO_VALUE'])
 					$photo = [Utils::getFileArray($item['PROPERTY_PHOTO_VALUE'])];
 				$gender = '';
-				if ($item['PROPERTY_GENDER_ENUM_ID'])
-					$gender = Gender::getCodeById($item['PROPERTY_GENDER_ENUM_ID']);
+				if ($item['PROPERTY_GENDER_VALUE'])
+					$gender = Gender::getCodeById($item['PROPERTY_GENDER_VALUE']);
 				$size = [];
 				foreach ($item['PROPERTY_SIZE_VALUE'] as $tmp)
 					$size[] = intval($tmp);

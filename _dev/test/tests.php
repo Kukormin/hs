@@ -159,7 +159,7 @@ $arTests = array(
 		'VAR' => '+ файл',
 		'METHOD' => 'POST',
 		'URI' => '/user/update',
-		'DATA' => '{"name":"Елизавета Смирнова","city":"Москва","nickname":"Pinkpanter","email":"pinkpanter@mail.ru","gender":"w","address":{"street":"ул.Ленина, д.12, стр.1","flat":"34","index":"523057","fio":"Елизавета Смирнова"},"brands":[80,81,82],"sections":[10,18,19],"sizes":[58,68]}',
+		'DATA' => '{"name":"Елизавета Смирнова","city":"Москва","nickname":"Pinkpanter","email":"pinkpanter@mail.ru","gender":"w","address":{"street":"ул.Ленина, д.12, стр.1","flat":"34","index":"523057","fio":"Елизавета Смирнова"},"brands":[80,81,82],"sections":[18,19],"sizes":[58,68]}',
 		'NEED' => 200,
 		'AUTH' => 'x',
 	),
