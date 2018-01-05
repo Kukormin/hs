@@ -195,6 +195,11 @@ class Ad
 		$fileIds = array();
 		foreach ($_FILES as $file)
 			$fileIds[] = $file;
+
+		// TODO: DEBUG: отладочное фото
+		if (!$fileIds && $params['test_photo'])
+			$fileIds[] = 519;
+
 		if (!$fileIds)
 			throw new ApiException(['least_one_photo_needed'], 400);
 		$props['PHOTO'] = $fileIds;

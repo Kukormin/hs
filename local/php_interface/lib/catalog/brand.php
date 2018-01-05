@@ -140,7 +140,7 @@ class Brand
 		// TODO: DEBUG: на время тестов
 		if ($name == 'Новый бренд')
 			return array(
-				'ID' => 0,
+				'id' => 0,
 				'DEBUG' => "на самом деле не создаем элемент, чтоб в следующий раз проходил тест",
 			);
 
@@ -160,7 +160,7 @@ class Brand
 			throw new ApiException(['brand_add_error'], 500, $iblockElement->LAST_ERROR);
 
 		return array(
-			'ID' => $id,
+			'id' => $id,
 		);
 	}
 }
