@@ -164,7 +164,7 @@ class v1 extends Api
 			return Status::getAppData();
 		elseif ($method == 'add')
 			return User::addDeal($this->post['ads'], $this->post['payment'], $this->post['delivery'],
-				$this->post['check'], $this->post['address']);
+				$this->post['check'], $this->post['address'], $this->post['debug']);
 		elseif ($method == 'append')
 			return User::appendAdToDeal($this->post['ad'], $this->post['deal']);
 		elseif ($method == 'adremove')

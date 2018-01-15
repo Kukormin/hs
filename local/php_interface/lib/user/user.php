@@ -750,10 +750,11 @@ class User
 	 * @param $delivery
 	 * @param $check
 	 * @param $address
+	 * @param bool $debug
 	 * @return array
 	 * @throws ApiException
 	 */
-	public static function addDeal($adIds, $payment, $delivery, $check, $address)
+	public static function addDeal($adIds, $payment, $delivery, $check, $address, $debug = false)
 	{
 		// Проверяем авторизацию (выкинет исключение, если неавторизован)
 		$session = Auth::check();
@@ -814,6 +815,11 @@ class User
 				throw new ApiException(['wrong_address'], 400);
 
 		$check = $check ? true : false;
+
+		if ($debug)
+			return [
+				'id' => 1,
+			];
 
 		$id = Deal::add($adIds, $name, $userId, $sellerId, $payment, $delivery, $deliveryPrice, $check, $address);
 
@@ -910,6 +916,7 @@ class User
 				$ads[] = $id;
 		}
 		Deal::update($dealId, ['AD' => $ads]);
+		Ad::updateCanBuy($adId, true);
 
 		return [
 			'id' => $dealId,
