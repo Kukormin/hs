@@ -9,9 +9,9 @@ class Sms
 
 	const ERROR_EMPTY_RESPONSE = 'errorEmptyResponse';
 
-	protected $_apiLogin = 'dupepav2402';
+	protected $_apiLogin = 'z1517558102828';
 
-	protected $_apiPassword = '782850';
+	protected $_apiPassword = '720350';
 
 	protected $_host = 'json.gate.iqsms.ru';
 
