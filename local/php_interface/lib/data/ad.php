@@ -477,6 +477,7 @@ class Ad
 			'photo' => Utils::getFileArray(array_shift($ad['PHOTO'])),
 			'can_buy' => $ad['CAN_BUY'],
 			'additional' => $add,
+			'description' => $ad['DESCRIPTION'],
 		);
 		return $return;
 	}
