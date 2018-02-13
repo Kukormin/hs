@@ -25,3 +25,5 @@ $agent->CheckAgents();
 // Почта
 define("BX_CRONTAB_SUPPORT", true);
 $event->CheckEvents();
+
+require($_SERVER['DOCUMENT_ROOT']."/bitrix/modules/main/tools/backup.php");
