@@ -108,8 +108,6 @@ class Ad
 
 		// Особенности и комментарии
 		$props['FEATURES'] = htmlspecialchars(trim($params['features']));
-		if (!$props['FEATURES'])
-			$errors[] = 'empty_features';
 
 		// Описание
 		$props['DESCRIPTION'] = htmlspecialchars(trim($params['description']));
