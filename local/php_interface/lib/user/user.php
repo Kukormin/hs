@@ -1180,6 +1180,7 @@ class User
 				'id' => $message['ID'],
 				'message' => $message['MESSAGE'],
 				'user' => $message['USER'],
+				'date' => date('c', MakeTimeStamp($message['DATE'])),
 			];
 		}
 
