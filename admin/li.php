@@ -1,8 +1,11 @@
 <?
+/** @var array $item */
+/** @var string $cl */
 
 	$name = '';
 	$title = '';
 	$type = '';
+	$href = '';
 	if ($item['IBLOCK_ID'] == $dealsIblockId)
 	{
 		$deal = \Local\Data\Deal::getById($item['ID']);
