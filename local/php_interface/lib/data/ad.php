@@ -469,6 +469,7 @@ class Ad
 			'created' => $ad['DATE_CREATE'],
 			'user' => User::publicProfile($ad['USER']),
 			'section' => $ad['CATEGORY'],
+			'brand' => $ad['BRAND'],
 			'gender' => Gender::getCodeById($ad['GENDER']),
 			'color' => $ad['COLOR'],
 			'size' => Size::getById($ad['SIZE'])['NAME'],
