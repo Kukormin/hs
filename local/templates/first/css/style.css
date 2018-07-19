@@ -1,0 +1,56 @@
+.ad {
+	padding: 10px;
+}
+
+.ad img {
+	width: 100%;
+}
+
+.price {
+	font-size: 16px;
+	font-weight: bold;
+}
+
+.price u {
+	text-decoration: none;
+	margin-left: 4px;
+	font-size: 0.9em;
+	font-weight: normal;
+}
+
+.purchase.price {
+	font-weight: normal;
+	text-decoration: line-through;
+}
+
+.ad .desc {
+	margin: 0 0 10px;
+}
+
+.ad .features {
+	margin: 0 0 10px;
+}
+
+.ad .price {
+	font-size: 20px;
+	display: inline-block;
+}
+
+.ad .purchase {
+	display: inline-block;
+	margin: 0 10px 10px 0;
+}
+
+.ad dl {
+	margin: 0;
+}
+
+.ad dt {
+	display: inline-block;
+	vertical-align: top;
+}
+
+.ad dd {
+	display: inline-block;
+	vertical-align: top;
+}
